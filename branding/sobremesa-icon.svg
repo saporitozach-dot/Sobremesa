@@ -1,0 +1,21 @@
+<svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Sobremesa">
+  <!-- Plate + speech bubble: dining meets conversation -->
+  <g>
+    <circle cx="100" cy="92" r="72" fill="#E8B04B"/>
+    <path d="M64,152 L103,152 L75,186 Z" fill="#E8B04B"/>
+  </g>
+  <!-- Crossed fork & knife as negative space -->
+  <g fill="#1B2A24" transform="translate(0 4)">
+    <g transform="rotate(-19 100 92)">
+      <rect x="89" y="46" width="5" height="22" rx="2.5"/>
+      <rect x="97.5" y="46" width="5" height="22" rx="2.5"/>
+      <rect x="106" y="46" width="5" height="22" rx="2.5"/>
+      <rect x="89" y="62" width="22" height="8" rx="4"/>
+      <rect x="96.5" y="64" width="7" height="80" rx="3.5"/>
+    </g>
+    <g transform="rotate(19 100 92)">
+      <path d="M100,44 C104,55 106,65 106,75 L106,90 L94,90 L94,75 C94,65 96,55 100,44 Z"/>
+      <rect x="96.5" y="86" width="7" height="58" rx="3.5"/>
+    </g>
+  </g>
+</svg>

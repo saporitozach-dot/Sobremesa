@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Sobremesa — Brand Guidelines</title>
+<style>
+  :root{
+    --forest:#1B2A24; --surface:#243A31; --surface-alt:#2E4A3E; --border:#34503F;
+    --amber:#E8B04B; --amber-dark:#C8913A; --cream:#F4EFE6; --muted:#A9B5AE;
+    --sage:#7FB069; --danger:#D9534F;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0; background:#0E1713; color:var(--cream);
+    font-family:'Helvetica Neue',Helvetica,Arial,sans-serif; line-height:1.55;
+    -webkit-font-smoothing:antialiased;
+  }
+  .page{max-width:920px; margin:0 auto; padding:48px 40px 80px;}
+  header{display:flex; align-items:center; gap:24px; border-bottom:1px solid var(--border); padding-bottom:28px; margin-bottom:40px;}
+  header .mark{flex:0 0 auto;}
+  header h1{font-size:30px; margin:0; font-weight:700; letter-spacing:.5px;}
+  header p{margin:4px 0 0; color:var(--muted); font-size:14px; letter-spacing:3px; text-transform:uppercase;}
+  h2{font-size:13px; letter-spacing:3px; text-transform:uppercase; color:var(--amber); margin:48px 0 18px; font-weight:700;}
+  section:first-of-type h2{margin-top:0;}
+  .lead{color:var(--muted); font-size:15px; max-width:62ch;}
+  .logo-grid{display:grid; grid-template-columns:1.4fr 1fr; gap:20px;}
+  .panel{background:var(--surface); border:1px solid var(--border); border-radius:18px; padding:28px; display:flex; align-items:center; justify-content:center;}
+  .panel.light{background:var(--cream);}
+  .panel.alt{background:var(--surface-alt);}
+  .panel .cap{position:absolute;}
+  .panel-wrap{position:relative;}
+  .panel-wrap small{display:block; color:var(--muted); font-size:12px; margin-top:8px; text-align:center; letter-spacing:.4px;}
+  .swatches{display:grid; grid-template-columns:repeat(3,1fr); gap:16px;}
+  .sw{border:1px solid var(--border); border-radius:14px; overflow:hidden; background:var(--surface);}
+  .sw .chip{height:84px;}
+  .sw .meta{padding:12px 14px;}
+  .sw .name{font-weight:700; font-size:14px;}
+  .sw .role{color:var(--muted); font-size:12px; margin:2px 0 8px;}
+  .sw .hex{font-family:'SF Mono',Menlo,Consolas,monospace; font-size:12.5px; color:var(--cream); display:flex; justify-content:space-between;}
+  .sw .hex span:last-child{color:var(--muted);}
+  .type-row{display:flex; align-items:baseline; gap:18px; border-bottom:1px solid var(--border); padding:14px 0;}
+  .type-row:last-child{border-bottom:none;}
+  .type-row .lbl{width:140px; flex:0 0 auto; color:var(--muted); font-size:12px; letter-spacing:1.5px; text-transform:uppercase;}
+  .wordmark-lower{font-weight:600; letter-spacing:1px; font-size:34px; color:var(--cream);}
+  .tagline-type{font-weight:600; letter-spacing:6px; font-size:14px; color:var(--amber-dark); text-transform:uppercase;}
+  .cols{display:grid; grid-template-columns:1fr 1fr; gap:24px;}
+  .card{background:var(--surface); border:1px solid var(--border); border-radius:16px; padding:22px 24px;}
+  .card h3{margin:0 0 10px; font-size:14px; letter-spacing:1px; text-transform:uppercase;}
+  .card.do h3{color:var(--sage);} .card.dont h3{color:var(--danger);}
+  .card ul{margin:0; padding-left:18px;} .card li{margin:7px 0; font-size:14px; color:var(--cream);}
+  .voice{display:flex; flex-wrap:wrap; gap:10px;}
+  .pill{background:var(--surface-alt); border:1px solid var(--border); border-radius:999px; padding:8px 16px; font-size:13px;}
+  .pill.amber{background:var(--amber); color:var(--forest); border-color:var(--amber); font-weight:700;}
+  footer{margin-top:56px; padding-top:20px; border-top:1px solid var(--border); color:var(--muted); font-size:12px; display:flex; justify-content:space-between;}
+  @media (max-width:640px){.logo-grid,.cols,.swatches{grid-template-columns:1fr;} .page{padding:28px 20px 60px;}}
+</style>
+</head>
+<body>
+<div class="page">
+
+  <header>
+    <span class="mark">
+      <svg width="78" height="78" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+        <circle cx="100" cy="92" r="72" fill="#E8B04B"/>
+        <path d="M64,152 L103,152 L75,186 Z" fill="#E8B04B"/>
+        <g fill="#1B2A24" transform="translate(0 4)">
+          <g transform="rotate(-19 100 92)">
+            <rect x="89" y="46" width="5" height="22" rx="2.5"/><rect x="97.5" y="46" width="5" height="22" rx="2.5"/>
+            <rect x="106" y="46" width="5" height="22" rx="2.5"/><rect x="89" y="62" width="22" height="8" rx="4"/>
+            <rect x="96.5" y="64" width="7" height="80" rx="3.5"/>
+          </g>
+          <g transform="rotate(19 100 92)">
+            <path d="M100,44 C104,55 106,65 106,75 L106,90 L94,90 L94,75 C94,65 96,55 100,44 Z"/>
+            <rect x="96.5" y="86" width="7" height="58" rx="3.5"/>
+          </g>
+        </g>
+      </svg>
+    </span>
+    <div>
+      <h1>Sobremesa</h1>
+      <p>Brand Guidelines &nbsp;·&nbsp; v1.0</p>
+    </div>
+  </header>
+
+  <section>
+    <h2>The idea</h2>
+    <p class="lead"><em>Sobremesa</em> (Spanish) is the time spent lingering at the table after a meal — talking, not scrolling. The logo holds the whole brand in one image: a <strong>speech bubble</strong> (conversation, presence) wrapped around a <strong>crossed fork and knife</strong> (the meal). Talk over food. Phones away.</p>
+  </section>
+
+  <section>
+    <h2>Logo</h2>
+    <div class="logo-grid">
+      <div class="panel-wrap">
+        <div class="panel">
+          <svg width="320" height="86" viewBox="0 0 760 200" xmlns="http://www.w3.org/2000/svg">
+            <g transform="translate(8 6) scale(0.92)">
+              <circle cx="100" cy="92" r="72" fill="#E8B04B"/><path d="M64,152 L103,152 L75,186 Z" fill="#E8B04B"/>
+              <g fill="#1B2A24" transform="translate(0 4)">
+                <g transform="rotate(-19 100 92)"><rect x="89" y="46" width="5" height="22" rx="2.5"/><rect x="97.5" y="46" width="5" height="22" rx="2.5"/><rect x="106" y="46" width="5" height="22" rx="2.5"/><rect x="89" y="62" width="22" height="8" rx="4"/><rect x="96.5" y="64" width="7" height="80" rx="3.5"/></g>
+                <g transform="rotate(19 100 92)"><path d="M100,44 C104,55 106,65 106,75 L106,90 L94,90 L94,75 C94,65 96,55 100,44 Z"/><rect x="96.5" y="86" width="7" height="58" rx="3.5"/></g>
+              </g>
+            </g>
+            <text x="212" y="104" font-family="'Helvetica Neue',Helvetica,Arial,sans-serif" font-size="62" font-weight="600" letter-spacing="1" fill="#F4EFE6">sobremesa</text>
+            <text x="214" y="140" font-family="'Helvetica Neue',Helvetica,Arial,sans-serif" font-size="20" font-weight="600" letter-spacing="6" fill="#E8B04B">PHONE-FREE DINING</text>
+          </svg>
+        </div>
+        <small>Primary lockup (on dark)</small>
+      </div>
+      <div class="panel-wrap">
+        <div class="panel light">
+          <svg width="200" height="48" viewBox="0 0 760 200" xmlns="http://www.w3.org/2000/svg">
+            <g transform="translate(8 6) scale(0.92)">
+              <circle cx="100" cy="92" r="72" fill="#E8B04B"/><path d="M64,152 L103,152 L75,186 Z" fill="#E8B04B"/>
+              <g fill="#1B2A24" transform="translate(0 4)">
+                <g transform="rotate(-19 100 92)"><rect x="89" y="46" width="5" height="22" rx="2.5"/><rect x="97.5" y="46" width="5" height="22" rx="2.5"/><rect x="106" y="46" width="5" height="22" rx="2.5"/><rect x="89" y="62" width="22" height="8" rx="4"/><rect x="96.5" y="64" width="7" height="80" rx="3.5"/></g>
+                <g transform="rotate(19 100 92)"><path d="M100,44 C104,55 106,65 106,75 L106,90 L94,90 L94,75 C94,65 96,55 100,44 Z"/><rect x="96.5" y="86" width="7" height="58" rx="3.5"/></g>
+              </g>
+            </g>
+            <text x="212" y="104" font-family="'Helvetica Neue',Helvetica,Arial,sans-serif" font-size="62" font-weight="600" letter-spacing="1" fill="#1B2A24">sobremesa</text>
+            <text x="214" y="140" font-family="'Helvetica Neue',Helvetica,Arial,sans-serif" font-size="20" font-weight="600" letter-spacing="6" fill="#C8913A">PHONE-FREE DINING</text>
+          </svg>
+        </div>
+        <small>Primary lockup (on light)</small>
+      </div>
+    </div>
+    <div class="logo-grid" style="margin-top:20px;">
+      <div class="panel-wrap">
+        <div class="panel alt" style="gap:40px;">
+          <svg width="92" height="92" viewBox="0 0 200 200"><circle cx="100" cy="92" r="72" fill="#E8B04B"/><path d="M64,152 L103,152 L75,186 Z" fill="#E8B04B"/><g fill="#2E4A3E" transform="translate(0 4)"><g transform="rotate(-19 100 92)"><rect x="89" y="46" width="5" height="22" rx="2.5"/><rect x="97.5" y="46" width="5" height="22" rx="2.5"/><rect x="106" y="46" width="5" height="22" rx="2.5"/><rect x="89" y="62" width="22" height="8" rx="4"/><rect x="96.5" y="64" width="7" height="80" rx="3.5"/></g><g transform="rotate(19 100 92)"><path d="M100,44 C104,55 106,65 106,75 L106,90 L94,90 L94,75 C94,65 96,55 100,44 Z"/><rect x="96.5" y="86" width="7" height="58" rx="3.5"/></g></g></svg>
+          <svg width="92" height="92" viewBox="0 0 220 220"><rect width="220" height="220" rx="48" fill="#1B2A24"/><g transform="translate(110 112) scale(0.82) translate(-100 -100)"><circle cx="100" cy="92" r="72" fill="#E8B04B"/><path d="M64,152 L103,152 L75,186 Z" fill="#E8B04B"/><g fill="#1B2A24" transform="translate(0 4)"><g transform="rotate(-19 100 92)"><rect x="89" y="46" width="5" height="22" rx="2.5"/><rect x="97.5" y="46" width="5" height="22" rx="2.5"/><rect x="106" y="46" width="5" height="22" rx="2.5"/><rect x="89" y="62" width="22" height="8" rx="4"/><rect x="96.5" y="64" width="7" height="80" rx="3.5"/></g><g transform="rotate(19 100 92)"><path d="M100,44 C104,55 106,65 106,75 L106,90 L94,90 L94,75 C94,65 96,55 100,44 Z"/><rect x="96.5" y="86" width="7" height="58" rx="3.5"/></g></g></g></svg>
+        </div>
+        <small>Icon mark &nbsp;·&nbsp; App icon tile</small>
+      </div>
+      <div class="panel-wrap">
+        <div class="panel" style="flex-direction:column; align-items:flex-start; gap:8px;">
+          <strong style="font-size:14px;">Clear space &amp; minimum size</strong>
+          <span style="color:var(--muted); font-size:13px;">Keep clear space around the mark equal to the height of the speech-bubble tail. Don't reproduce the icon below 24&nbsp;px; below that, drop the tail for legibility.</span>
+        </div>
+        <small>Protection</small>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <h2>Color palette</h2>
+    <div class="swatches">
+      <div class="sw"><div class="chip" style="background:#1B2A24;"></div><div class="meta"><div class="name">Forest</div><div class="role">Base / backgrounds</div><div class="hex"><span>#1B2A24</span><span>27&nbsp;42&nbsp;36</span></div></div></div>
+      <div class="sw"><div class="chip" style="background:#E8B04B;"></div><div class="meta"><div class="name">Amber</div><div class="role">Primary / CTAs / brand</div><div class="hex"><span>#E8B04B</span><span>232&nbsp;176&nbsp;75</span></div></div></div>
+      <div class="sw"><div class="chip" style="background:#C8913A;"></div><div class="meta"><div class="name">Amber Deep</div><div class="role">Pressed / accents on light</div><div class="hex"><span>#C8913A</span><span>200&nbsp;145&nbsp;58</span></div></div></div>
+      <div class="sw"><div class="chip" style="background:#F4EFE6;"></div><div class="meta"><div class="name">Cream</div><div class="role">Body text on dark</div><div class="hex"><span>#F4EFE6</span><span>244&nbsp;239&nbsp;230</span></div></div></div>
+      <div class="sw"><div class="chip" style="background:#7FB069;"></div><div class="meta"><div class="name">Sage</div><div class="role">Success / active session</div><div class="hex"><span>#7FB069</span><span>127&nbsp;176&nbsp;105</span></div></div></div>
+      <div class="sw"><div class="chip" style="background:#243A31;"></div><div class="meta"><div class="name">Surface</div><div class="role">Cards / raised panels</div><div class="hex"><span>#243A31</span><span>36&nbsp;58&nbsp;49</span></div></div></div>
+      <div class="sw"><div class="chip" style="background:#2E4A3E;"></div><div class="meta"><div class="name">Surface Alt</div><div class="role">Inputs / chips</div><div class="hex"><span>#2E4A3E</span><span>46&nbsp;74&nbsp;62</span></div></div></div>
+      <div class="sw"><div class="chip" style="background:#A9B5AE;"></div><div class="meta"><div class="name">Muted</div><div class="role">Secondary text</div><div class="hex"><span>#A9B5AE</span><span>169&nbsp;181&nbsp;174</span></div></div></div>
+      <div class="sw"><div class="chip" style="background:#D9534F;"></div><div class="meta"><div class="name">Signal Red</div><div class="role">Destructive only</div><div class="hex"><span>#D9534F</span><span>217&nbsp;83&nbsp;79</span></div></div></div>
+    </div>
+    <p class="lead" style="margin-top:18px;">Ratio guide: lead with <strong>Forest</strong> (≈70%), use <strong>Amber</strong> as the single accent (≈20%), and <strong>Cream</strong> for text (≈10%). Amber is for emphasis — never body copy. For legibility, set text in Cream or Forest, not Amber on Forest at small sizes.</p>
+  </section>
+
+  <section>
+    <h2>Typography</h2>
+    <div class="card" style="background:var(--surface);">
+      <div class="type-row"><div class="lbl">Wordmark</div><div><span class="wordmark-lower">sobremesa</span><div style="color:var(--muted);font-size:12px;">Helvetica Neue / system sans · weight 600 · lowercase · +1 tracking</div></div></div>
+      <div class="type-row"><div class="lbl">Tagline</div><div><span class="tagline-type">Phone-Free Dining</span><div style="color:var(--muted);font-size:12px;">Uppercase · weight 600 · +6 tracking · Amber Deep</div></div></div>
+      <div class="type-row"><div class="lbl">Headings (UI)</div><div><span style="font-size:24px;font-weight:800;">Put your phone away</span><div style="color:var(--muted);font-size:12px;">System sans · weight 800</div></div></div>
+      <div class="type-row"><div class="lbl">Body</div><div><span style="font-size:16px;">Look up — the table is where the good stuff is.</span><div style="color:var(--muted);font-size:12px;">System sans · weight 400–600 · Cream</div></div></div>
+    </div>
+    <p class="lead" style="margin-top:14px;">The app ships with the platform system font (San&nbsp;Francisco on iOS, Roboto on Android) so it feels native. The wordmark uses Helvetica Neue; convert it to outlines in any exported logo so the brand never depends on an installed font.</p>
+  </section>
+
+  <section>
+    <h2>Voice &amp; taglines</h2>
+    <div class="voice">
+      <span class="pill amber">Phone-Free Dining</span>
+      <span class="pill">Be here for the meal.</span>
+      <span class="pill">Linger at the table.</span>
+      <span class="pill">Presence over screens.</span>
+      <span class="pill">The conversation is the main course.</span>
+    </div>
+    <p class="lead" style="margin-top:16px;">Tone: warm, hospitable, never preachy. We invite, we don't scold. We celebrate presence rather than shame the phone.</p>
+  </section>
+
+  <section>
+    <h2>Usage</h2>
+    <div class="cols">
+      <div class="card do">
+        <h3>Do</h3>
+        <ul>
+          <li>Lead with Forest green; let Amber be the one thing that glows.</li>
+          <li>Keep generous clear space around the mark.</li>
+          <li>Use the icon-only mark for small spaces and avatars.</li>
+          <li>Set body text in Cream or Forest for contrast.</li>
+        </ul>
+      </div>
+      <div class="card dont">
+        <h3>Don't</h3>
+        <ul>
+          <li>Don't recolor the logo outside the palette (no blue — we're the antidote to blue apps).</li>
+          <li>Don't stretch, rotate, or add drop shadows to the mark.</li>
+          <li>Don't set long text in Amber on Forest — it fails legibility.</li>
+          <li>Don't place the mark on a busy photo without a solid backing.</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <footer>
+    <span>Sobremesa — Brand Guidelines</span>
+    <span>Reduce screen time · Increase the table</span>
+  </footer>
+
+</div>
+</body>
+</html>
