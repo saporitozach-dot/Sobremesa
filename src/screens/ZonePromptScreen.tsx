@@ -6,12 +6,15 @@ import { colors, font, radius, spacing } from '../theme';
 import { useApp } from '../context/AppContext';
 import Button from '../components/Button';
 import ArrivalIcon from '../components/ArrivalIcon';
+import StampRow from '../components/StampRow';
+import { MIN_STAMP_MINUTES, STAMPS_FOR_REWARD } from '../types';
 import type { RootStackParamList } from '../../App';
 
 type Nav = NativeStackNavigationProp<RootStackParamList, 'ZonePrompt'>;
 
 export default function ZonePromptScreen({ navigation }: { navigation: Nav }) {
-  const { activeRestaurant, settings, startLock, dismissPing } = useApp();
+  const { activeRestaurant, settings, startLock, dismissPing, getBookForRestaurant } =
+    useApp();
 
   if (!activeRestaurant) {
     navigation.goBack();
@@ -33,6 +36,10 @@ export default function ZonePromptScreen({ navigation }: { navigation: Nav }) {
     ...(settings.cameraAllowed ? ['Camera'] : []),
   ];
 
+  const book = getBookForRestaurant(activeRestaurant.id);
+  const stampsToday =
+    book.lastStampDate === new Date().toISOString().slice(0, 10);
+
   return (
     <SafeAreaView style={styles.safe}>
       <View style={styles.content}>
@@ -46,7 +53,16 @@ export default function ZonePromptScreen({ navigation }: { navigation: Nav }) {
         <View style={styles.card}>
           <Text style={styles.cardTitle}>Start a phone-free Sobremesa?</Text>
           <DetailRow label="Goal" value={`${settings.goalMinutes} min at the table`} />
-          <DetailRow label="Reward" value={`+${activeRestaurant.rewardPoints} points`} />
+          <View style={styles.detailBlock}>
+            <Text style={styles.detailLabel}>Stamps</Text>
+            <StampRow stamps={book.stamps} size={24} />
+            <Text style={styles.stampHint}>
+              +1 stamp after {MIN_STAMP_MINUTES} min phone-free
+              {stampsToday ? ' · already earned today' : ' · once per day'}
+              {' · '}
+              {STAMPS_FOR_REWARD} stamps = {activeRestaurant.rewardLabel.toLowerCase()}
+            </Text>
+          </View>
           <View style={styles.detailBlock}>
             <Text style={styles.detailLabel}>Still available</Text>
             <View style={styles.chipRow}>
@@ -164,5 +180,11 @@ const styles = StyleSheet.create({
     fontSize: font.small,
     fontWeight: '600',
     lineHeight: 18,
+  },
+  stampHint: {
+    color: colors.textMuted,
+    fontSize: font.small,
+    lineHeight: 18,
+    marginTop: spacing.xs,
   },
 });

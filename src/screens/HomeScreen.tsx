@@ -19,6 +19,7 @@ import {
   checkProximityOnce,
   simulateEnter,
 } from '../services/geofence';
+import { recordLocationSample } from '../services/locationIntegrity';
 import Logo from '../components/Logo';
 import SettingsIcon from '../components/SettingsIcon';
 import PulseArrivalButton from '../components/PulseArrivalButton';
@@ -48,6 +49,7 @@ export default function HomeScreen({ navigation }: { navigation: Nav }) {
   const [locationError, setLocationError] = useState<string | null>(null);
   const [gpsAccuracy, setGpsAccuracy] = useState<number | null>(null);
   const [atRestaurant, setAtRestaurant] = useState<Restaurant | null>(null);
+  const [arrivalWarning, setArrivalWarning] = useState<string | null>(null);
 
   useEffect(() => {
     if (lockState === 'pinged' && activeRestaurant) {
@@ -125,6 +127,7 @@ export default function HomeScreen({ navigation }: { navigation: Nav }) {
 
         setListSource('location');
         setGpsAccuracy(pos.coords.accuracy ?? null);
+        recordLocationSample(pos);
         setNearby(results);
       } finally {
         setLoading(false);
@@ -140,14 +143,24 @@ export default function HomeScreen({ navigation }: { navigation: Nav }) {
   useEffect(() => {
     if (permission !== 'granted' || lockState === 'locked') {
       setAtRestaurant(null);
+      setArrivalWarning(null);
       return;
     }
 
     let cancelled = false;
 
     async function pollZone() {
-      const here = await checkProximityOnce().catch(() => null);
-      if (!cancelled) setAtRestaurant(here);
+      const result = await checkProximityOnce().catch(() => ({
+        restaurant: null,
+        validation: null,
+      }));
+      if (cancelled) return;
+      setAtRestaurant(result.restaurant);
+      setArrivalWarning(
+        result.validation && !result.validation.trusted
+          ? result.validation.message ?? 'Location could not be verified.'
+          : null,
+      );
     }
 
     pollZone();
@@ -170,12 +183,23 @@ export default function HomeScreen({ navigation }: { navigation: Nav }) {
   }
 
   async function handleStartSession() {
-    const here = atRestaurant ?? (await checkProximityOnce().catch(() => null));
-    simulateEnter(here ?? nearby[0] ?? SAMPLE_RESTAURANTS[0]);
+    const result = await checkProximityOnce().catch(() => ({
+      restaurant: null,
+      validation: null,
+    }));
+    if (result.restaurant) {
+      simulateEnter(result.restaurant);
+      return;
+    }
+    if (result.validation && !result.validation.trusted) {
+      setArrivalWarning(result.validation.message ?? 'Location could not be verified.');
+      return;
+    }
+    simulateEnter(nearby[0] ?? SAMPLE_RESTAURANTS[0]);
   }
 
   async function handleSimulate() {
-    await handleStartSession();
+    simulateEnter(nearby[0] ?? SAMPLE_RESTAURANTS[0]);
   }
 
   const showPermissionCard = permission === 'unknown' || permission === 'denied';
@@ -303,10 +327,16 @@ export default function HomeScreen({ navigation }: { navigation: Nav }) {
       {inPartnerZone && (
         <View style={styles.zoneBar}>
           <PulseArrivalButton
-            title={`You're at ${atRestaurant.name}`}
+            title={`You're at ${atRestaurant!.name}`}
             subtitle="Tap to start your phone-free session"
             onPress={handleStartSession}
           />
+        </View>
+      )}
+
+      {arrivalWarning && !inPartnerZone && permission === 'granted' && (
+        <View style={styles.warningBar}>
+          <Text style={styles.warningText}>{arrivalWarning}</Text>
         </View>
       )}
     </SafeAreaView>
@@ -457,6 +487,23 @@ const styles = StyleSheet.create({
     backgroundColor: colors.bg,
     borderTopWidth: 1,
     borderTopColor: colors.border,
+  },
+  warningBar: {
+    position: 'absolute',
+    left: spacing.lg,
+    right: spacing.lg,
+    bottom: spacing.lg,
+    padding: spacing.md,
+    borderRadius: radius.md,
+    backgroundColor: colors.surface,
+    borderWidth: 1,
+    borderColor: colors.border,
+  },
+  warningText: {
+    color: colors.textMuted,
+    fontSize: font.small,
+    lineHeight: 18,
+    textAlign: 'center',
   },
   listEmpty: {
     flexGrow: 1,

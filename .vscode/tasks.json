@@ -1,0 +1,15 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "Open Sobremesa in Cursor",
+      "type": "vscode",
+      "command": "simpleBrowser.show",
+      "args": ["http://localhost:8081"],
+      "problemMatcher": [],
+      "presentation": {
+        "reveal": "never"
+      }
+    }
+  ]
+}

@@ -4,6 +4,12 @@ import * as Notifications from 'expo-notifications';
 import { SAMPLE_RESTAURANTS } from '../data/restaurants';
 import { Restaurant } from '../types';
 import { metersBetween } from '../utils/geo';
+import {
+  ArrivalValidation,
+  isMockLocation,
+  recordLocationSample,
+  validateZoneArrival,
+} from './locationIntegrity';
 
 export const GEOFENCE_TASK = 'sobremesa-geofence-task';
 
@@ -13,9 +19,15 @@ export type MonitorResult = {
   message?: string;
 };
 
+export type ProximityResult = {
+  restaurant: Restaurant | null;
+  validation: ArrivalValidation | null;
+};
+
 type GeofenceEvent = {
   type: 'enter' | 'exit';
   restaurant: Restaurant;
+  validation?: ArrivalValidation;
 };
 
 type Listener = (event: GeofenceEvent) => void;
@@ -37,23 +49,67 @@ function findRestaurant(regionId: string): Restaurant | undefined {
   return SAMPLE_RESTAURANTS.find((r) => r.id === regionId);
 }
 
-function updateProximityFromPosition(lat: number, lng: number) {
+function tryEnterZone(
+  restaurant: Restaurant,
+  position: Location.LocationObject,
+  options?: { bypassValidation?: boolean },
+): boolean {
+  if (options?.bypassValidation) {
+    emit({ type: 'enter', restaurant, validation: { trusted: true } });
+    return true;
+  }
+
+  const validation = validateZoneArrival(position, restaurant);
+  if (!validation.trusted) {
+    console.warn(
+      `[geofence] rejected enter at ${restaurant.name}:`,
+      validation.reason,
+      validation.message,
+    );
+    return false;
+  }
+
+  emit({ type: 'enter', restaurant, validation });
+  return true;
+}
+
+function updateProximityFromPosition(
+  position: Location.LocationObject,
+  options?: { bypassValidation?: boolean },
+) {
+  if (isMockLocation(position)) {
+    console.warn('[geofence] mock location detected — ignoring proximity updates');
+    return;
+  }
+
+  recordLocationSample(position);
+
   for (const restaurant of SAMPLE_RESTAURANTS) {
     const distance = metersBetween(
-      lat,
-      lng,
+      position.coords.latitude,
+      position.coords.longitude,
       restaurant.latitude,
       restaurant.longitude,
     );
     const inside = distance <= restaurant.radius;
+
     if (inside && !insideRegionIds.has(restaurant.id)) {
-      insideRegionIds.add(restaurant.id);
-      emit({ type: 'enter', restaurant });
+      const accepted = tryEnterZone(restaurant, position, options);
+      if (accepted) insideRegionIds.add(restaurant.id);
     } else if (!inside && insideRegionIds.has(restaurant.id)) {
       insideRegionIds.delete(restaurant.id);
       emit({ type: 'exit', restaurant });
     }
   }
+}
+
+async function validateBackgroundEnter(restaurant: Restaurant): Promise<boolean> {
+  const position = await Location.getCurrentPositionAsync({
+    accuracy: Location.Accuracy.Balanced,
+  }).catch(() => null);
+
+  if (!position) return false;
+  return tryEnterZone(restaurant, position);
 }
 
 TaskManager.defineTask(GEOFENCE_TASK, async ({ data, error }) => {
@@ -70,6 +126,9 @@ TaskManager.defineTask(GEOFENCE_TASK, async ({ data, error }) => {
   if (!restaurant) return;
 
   if (eventType === Location.GeofencingEventType.Enter) {
+    const accepted = await validateBackgroundEnter(restaurant);
+    if (!accepted) return;
+
     await Notifications.scheduleNotificationAsync({
       content: {
         title: `You're at ${restaurant.name}`,
@@ -78,8 +137,8 @@ TaskManager.defineTask(GEOFENCE_TASK, async ({ data, error }) => {
       },
       trigger: null,
     });
-    emit({ type: 'enter', restaurant });
   } else if (eventType === Location.GeofencingEventType.Exit) {
+    insideRegionIds.delete(restaurant.id);
     emit({ type: 'exit', restaurant });
   }
 });
@@ -155,7 +214,7 @@ async function startForegroundWatch(): Promise<void> {
       timeInterval: 15000,
     },
     (pos) => {
-      updateProximityFromPosition(pos.coords.latitude, pos.coords.longitude);
+      updateProximityFromPosition(pos);
     },
   );
 
@@ -163,7 +222,7 @@ async function startForegroundWatch(): Promise<void> {
     accuracy: Location.Accuracy.Balanced,
   }).catch(() => null);
   if (pos) {
-    updateProximityFromPosition(pos.coords.latitude, pos.coords.longitude);
+    recordLocationSample(pos);
   }
 }
 
@@ -219,24 +278,56 @@ export async function stopMonitoring(): Promise<void> {
   }
 }
 
-export async function checkProximityOnce(): Promise<Restaurant | null> {
+async function readCurrentPosition(): Promise<Location.LocationObject | null> {
   const { granted } = await Location.getForegroundPermissionsAsync();
   if (!granted) return null;
-  const pos = await Location.getCurrentPositionAsync({
+
+  return Location.getCurrentPositionAsync({
     accuracy: Location.Accuracy.Balanced,
-  });
-  for (const r of SAMPLE_RESTAURANTS) {
-    const d = metersBetween(
-      pos.coords.latitude,
-      pos.coords.longitude,
-      r.latitude,
-      r.longitude,
-    );
-    if (d <= r.radius) return r;
-  }
-  return null;
+  }).catch(() => null);
 }
 
+/** Trusted proximity check — rejects mock GPS and teleport-style jumps. */
+export async function checkProximityOnce(): Promise<ProximityResult> {
+  const position = await readCurrentPosition();
+  if (!position) {
+    return { restaurant: null, validation: null };
+  }
+
+  if (isMockLocation(position)) {
+    return {
+      restaurant: null,
+      validation: {
+        trusted: false,
+        reason: 'mock_location',
+        message: 'Mock location is enabled. Disable it to verify restaurant arrivals.',
+      },
+    };
+  }
+
+  recordLocationSample(position);
+
+  for (const restaurant of SAMPLE_RESTAURANTS) {
+    const distance = metersBetween(
+      position.coords.latitude,
+      position.coords.longitude,
+      restaurant.latitude,
+      restaurant.longitude,
+    );
+    if (distance <= restaurant.radius) {
+      const validation = validateZoneArrival(position, restaurant);
+      return {
+        restaurant: validation.trusted ? restaurant : null,
+        validation,
+      };
+    }
+  }
+
+  return { restaurant: null, validation: { trusted: true } };
+}
+
+/** Dev / demo only — skips travel and mock-location checks. */
 export function simulateEnter(restaurant: Restaurant): void {
-  emit({ type: 'enter', restaurant });
+  insideRegionIds.add(restaurant.id);
+  emit({ type: 'enter', restaurant, validation: { trusted: true } });
 }

@@ -1,3 +1,6 @@
+export const STAMPS_FOR_REWARD = 3;
+export const MIN_STAMP_MINUTES = 30;
+
 export interface Restaurant {
   id: string;
   name: string;
@@ -7,8 +10,10 @@ export interface Restaurant {
   longitude: number;
   /** Geofence radius in meters. */
   radius: number;
-  /** Reward points granted for completing a phone-free session here. */
+  /** @deprecated Use stamp rewards instead. */
   rewardPoints: number;
+  /** Shown on redemption voucher. */
+  rewardLabel: string;
 }
 
 export interface Account {
@@ -29,18 +34,53 @@ export interface Session {
   id: string;
   restaurantId: string;
   restaurantName: string;
-  startedAt: number;       // epoch ms
-  endedAt: number | null;  // epoch ms, null while active
-  /** Whether the user completed the session without bailing early. */
+  startedAt: number;
+  endedAt: number | null;
   completed: boolean;
   pointsEarned: number;
+  stampEarned?: boolean;
 }
 
 export type LockState = 'idle' | 'pinged' | 'locked' | 'completed';
 
 export interface AppSettings {
   cameraAllowed: boolean;
-  /** Minimum minutes the user commits to before a session counts. */
   goalMinutes: number;
   notificationsEnabled: boolean;
+}
+
+export interface RestaurantStampBook {
+  restaurantId: string;
+  /** Current stamps toward next reward (0–3). */
+  stamps: number;
+  totalStampsEarned: number;
+  /** YYYY-MM-DD of last stamp earned. */
+  lastStampDate: string | null;
+  redemptionsCount: number;
+}
+
+export interface RedemptionVoucher {
+  id: string;
+  restaurantId: string;
+  restaurantName: string;
+  code: string;
+  rewardLabel: string;
+  /** Server who confirmed the 2FA redemption step. */
+  serverConfirmedBy?: string;
+  issuedAt: number;
+  redeemedAt: number | null;
+  status: 'active' | 'redeemed';
+}
+
+export interface StampAwardResult {
+  earned: boolean;
+  reason?: string;
+}
+
+export interface LastStampResult {
+  restaurantId: string;
+  restaurantName: string;
+  earned: boolean;
+  reason?: string;
+  stampsAfter: number;
 }

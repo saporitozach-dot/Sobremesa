@@ -18,6 +18,9 @@ import ZonePromptScreen from './src/screens/ZonePromptScreen';
 import LockedModeScreen from './src/screens/LockedModeScreen';
 import SessionCompleteScreen from './src/screens/SessionCompleteScreen';
 import SettingsScreen from './src/screens/SettingsScreen';
+import RewardsScreen from './src/screens/RewardsScreen';
+import RedeemVoucherScreen from './src/screens/RedeemVoucherScreen';
+import ConfirmRedeemScreen from './src/screens/ConfirmRedeemScreen';
 import RestaurantDetailScreen from './src/screens/RestaurantDetailScreen';
 
 export type RootStackParamList = {
@@ -30,6 +33,9 @@ export type RootStackParamList = {
   Locked: undefined;
   SessionComplete: undefined;
   Settings: undefined;
+  Rewards: { returnTo?: 'Locked' } | undefined;
+  ConfirmRedeem: { restaurantId: string; returnTo?: 'Locked' };
+  RedeemVoucher: { voucherId: string; returnTo?: 'Locked' };
 };
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
@@ -118,6 +124,21 @@ function RootNavigator() {
             name="Settings"
             component={SettingsScreen}
             options={{ title: 'Settings' }}
+          />
+          <Stack.Screen
+            name="Rewards"
+            component={RewardsScreen}
+            options={{ title: 'Stamp book' }}
+          />
+          <Stack.Screen
+            name="ConfirmRedeem"
+            component={ConfirmRedeemScreen}
+            options={{ title: 'Confirm', presentation: 'modal' }}
+          />
+          <Stack.Screen
+            name="RedeemVoucher"
+            component={RedeemVoucherScreen}
+            options={{ title: 'Voucher', presentation: 'modal' }}
           />
         </>
       )}

@@ -12,6 +12,7 @@ export const SAMPLE_RESTAURANTS: Restaurant[] = [
     longitude: -80.1378,
     radius: 60,
     rewardPoints: 100,
+    rewardLabel: 'Free cocktail',
   },
   {
     id: 'r2',
@@ -23,6 +24,7 @@ export const SAMPLE_RESTAURANTS: Restaurant[] = [
     longitude: -80.1362,
     radius: 55,
     rewardPoints: 100,
+    rewardLabel: 'Free cocktail',
   },
   {
     id: 'r3',
@@ -34,6 +36,7 @@ export const SAMPLE_RESTAURANTS: Restaurant[] = [
     longitude: -80.139,
     radius: 60,
     rewardPoints: 120,
+    rewardLabel: 'Free cocktail',
   },
   {
     id: 'r4',
@@ -45,6 +48,7 @@ export const SAMPLE_RESTAURANTS: Restaurant[] = [
     longitude: -80.1385,
     radius: 50,
     rewardPoints: 110,
+    rewardLabel: 'Free appetizer',
   },
   {
     id: 'r5',
@@ -56,6 +60,7 @@ export const SAMPLE_RESTAURANTS: Restaurant[] = [
     longitude: -70.92655,
     radius: 60,
     rewardPoints: 100,
+    rewardLabel: 'Free cocktail',
   },
   {
     id: 'r6',
@@ -67,6 +72,7 @@ export const SAMPLE_RESTAURANTS: Restaurant[] = [
     longitude: -70.92872,
     radius: 55,
     rewardPoints: 110,
+    rewardLabel: 'Free cocktail',
   },
   {
     id: 'r7',
@@ -78,6 +84,7 @@ export const SAMPLE_RESTAURANTS: Restaurant[] = [
     longitude: -70.92845,
     radius: 50,
     rewardPoints: 90,
+    rewardLabel: 'Free appetizer',
   },
   {
     id: 'r8',
@@ -89,6 +96,7 @@ export const SAMPLE_RESTAURANTS: Restaurant[] = [
     longitude: -70.92709,
     radius: 55,
     rewardPoints: 100,
+    rewardLabel: 'Free cocktail',
   },
 ];
 

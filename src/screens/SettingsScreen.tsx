@@ -10,14 +10,20 @@ import {
   View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { colors, font, radius, spacing } from '../theme';
 import { useApp } from '../context/AppContext';
 import Button from '../components/Button';
+import StampRow from '../components/StampRow';
+import RewardIcon from '../components/RewardIcon';
 import { EmergencyContact } from '../types';
+import type { RootStackParamList } from '../../App';
 
 const GOAL_OPTIONS = [30, 45, 60, 90];
 
-export default function SettingsScreen() {
+type Nav = NativeStackNavigationProp<RootStackParamList, 'Settings'>;
+
+export default function SettingsScreen({ navigation }: { navigation: Nav }) {
   const {
     settings,
     updateSettings,
@@ -28,6 +34,8 @@ export default function SettingsScreen() {
     setContacts,
     account,
     logOut,
+    stampBooks,
+    vouchers,
   } = useApp();
 
   const [name, setName] = useState('');
@@ -81,6 +89,12 @@ export default function SettingsScreen() {
     await Linking.openSettings();
   }
 
+  const stampCount = Object.values(stampBooks).reduce((n, b) => n + b.stamps, 0);
+  const activeVouchers = vouchers.filter((v) => v.status === 'active').length;
+  const visitedCount = Object.values(stampBooks).filter(
+    (b) => b.totalStampsEarned > 0,
+  ).length;
+
   return (
     <SafeAreaView style={styles.safe} edges={['bottom']}>
       <ScrollView contentContainerStyle={styles.container}>
@@ -95,6 +109,28 @@ export default function SettingsScreen() {
             style={{ marginTop: spacing.md }}
           />
         </View>
+
+        <Text style={styles.section}>Rewards</Text>
+        <Pressable
+          style={styles.rewardsCard}
+          onPress={() => navigation.navigate('Rewards')}
+        >
+          <View style={styles.rewardsLeft}>
+            <RewardIcon size={22} />
+            <View>
+              <Text style={styles.label}>Stamp books</Text>
+              <Text style={styles.hint}>
+                {visitedCount === 0
+                  ? 'No visits yet'
+                  : `${visitedCount} restaurant${visitedCount === 1 ? '' : 's'} · ${stampCount} stamp${stampCount === 1 ? '' : 's'}`}
+                {activeVouchers > 0
+                  ? ` · ${activeVouchers} voucher${activeVouchers === 1 ? '' : 's'}`
+                  : ''}
+              </Text>
+            </View>
+          </View>
+          <Text style={styles.chevron}>›</Text>
+        </Pressable>
 
         <Text style={styles.section}>Zone detection</Text>
         <View style={styles.card}>
@@ -265,5 +301,24 @@ const styles = StyleSheet.create({
     fontSize: font.small,
     textAlign: 'center',
     marginTop: spacing.xl,
+  },
+  rewardsCard: {
+    backgroundColor: colors.surface,
+    borderRadius: radius.md,
+    padding: spacing.md,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  rewardsLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.md,
+    flex: 1,
+  },
+  chevron: {
+    color: colors.textMuted,
+    fontSize: 24,
+    fontWeight: '300',
   },
 });

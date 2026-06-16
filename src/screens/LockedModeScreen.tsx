@@ -12,12 +12,11 @@ import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { colors, font, radius, spacing } from '../theme';
 import { useApp } from '../context/AppContext';
 import Button from '../components/Button';
-import {
-  activateSessionShield,
-  getShieldCapabilities,
-  openSystemDistractionSettings,
-  showAppBlockingInfo,
-} from '../services/appShield';
+import StampBookIcon from '../components/StampBookIcon';
+import EmergencyPhoneIcon from '../components/EmergencyPhoneIcon';
+import CameraIcon from '../components/CameraIcon';
+import { canRedeem } from '../services/stamps';
+import { activateSessionShield } from '../services/appShield';
 import type { RootStackParamList } from '../../App';
 
 type Nav = NativeStackNavigationProp<RootStackParamList, 'Locked'>;
@@ -29,11 +28,19 @@ function format(ms: number): string {
   return `${m}:${s.toString().padStart(2, '0')}`;
 }
 
-export default function LockedModeScreen({ navigation }: { navigation: Nav }) {
-  const { activeSession, settings, emergencyContacts, endLock } = useApp();
+export default function LockedModeScreen({
+  navigation,
+}: {
+  navigation: Nav;
+}) {
+  const { activeSession, settings, emergencyContacts, endLock, getBookForRestaurant } =
+    useApp();
   const [now, setNow] = useState(Date.now());
   const [leaveCount, setLeaveCount] = useState(0);
-  const shield = useMemo(() => getShieldCapabilities(), []);
+  const sessionBook = activeSession
+    ? getBookForRestaurant(activeSession.restaurantId)
+    : null;
+  const readyToRedeem = sessionBook ? canRedeem(sessionBook) : false;
 
   const goalMs = settings.goalMinutes * 60 * 1000;
   const startedAt = activeSession?.startedAt ?? Date.now();
@@ -65,7 +72,7 @@ export default function LockedModeScreen({ navigation }: { navigation: Nav }) {
   function handleEndEarly() {
     Alert.alert(
       'Leave the table early?',
-      'Your phone-free session isn’t complete yet. You won’t earn points for this visit.',
+      'Your phone-free session isn’t complete yet. You won’t earn a stamp for this visit.',
       [
         { text: 'Stay', style: 'cancel' },
         { text: 'End anyway', style: 'destructive', onPress: () => finish(false) },
@@ -93,6 +100,16 @@ export default function LockedModeScreen({ navigation }: { navigation: Nav }) {
 
   return (
     <SafeAreaView style={styles.safe}>
+      <Pressable
+        style={styles.stampAccess}
+        onPress={() => navigation.navigate('Rewards', { returnTo: 'Locked' })}
+        hitSlop={12}
+        accessibilityLabel="Open stamp book"
+      >
+        <StampBookIcon size={22} />
+        {readyToRedeem && <View style={styles.stampBadge} />}
+      </Pressable>
+
       <View style={styles.content}>
         <Text style={styles.kicker}>Phone-free at</Text>
         <Text style={styles.name}>{activeSession?.restaurantName}</Text>
@@ -120,26 +137,9 @@ export default function LockedModeScreen({ navigation }: { navigation: Nav }) {
           </Text>
         )}
 
-        <View style={styles.shieldCard}>
-          <Text style={styles.shieldTitle}>Stronger protection</Text>
-          <Text style={styles.shieldBody}>
-            {shield.canBlockOtherApps
-              ? 'System app blocking is enabled for this build.'
-              : 'Expo Go cannot block Instagram, texts, or other apps. Turn on Focus / Do Not Disturb for extra help, then keep Sobremesa open.'}
-          </Text>
-          <Pressable onPress={openSystemDistractionSettings} hitSlop={8}>
-            <Text style={styles.shieldLink}>Open Focus / notification settings</Text>
-          </Pressable>
-          {!shield.canBlockOtherApps && (
-            <Pressable onPress={showAppBlockingInfo} hitSlop={8}>
-              <Text style={styles.shieldLinkMuted}>Why can’t Sobremesa lock other apps?</Text>
-            </Pressable>
-          )}
-        </View>
-
         <View style={styles.allowances}>
           <Pressable style={styles.allowance} onPress={handleEmergency}>
-            <Text style={styles.allowanceIcon}>📞</Text>
+            <EmergencyPhoneIcon size={28} />
             <Text style={styles.allowanceText}>Emergency</Text>
           </Pressable>
           {settings.cameraAllowed && (
@@ -152,7 +152,7 @@ export default function LockedModeScreen({ navigation }: { navigation: Nav }) {
                 )
               }
             >
-              <Text style={styles.allowanceIcon}>📷</Text>
+              <CameraIcon size={28} />
               <Text style={styles.allowanceText}>Camera</Text>
             </Pressable>
           )}
@@ -176,6 +176,29 @@ export default function LockedModeScreen({ navigation }: { navigation: Nav }) {
 
 const styles = StyleSheet.create({
   safe: { flex: 1, backgroundColor: colors.bg },
+  stampAccess: {
+    position: 'absolute',
+    top: spacing.md,
+    right: spacing.lg,
+    zIndex: 10,
+    width: 44,
+    height: 44,
+    borderRadius: radius.pill,
+    backgroundColor: colors.surface,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 1,
+    borderColor: colors.border,
+  },
+  stampBadge: {
+    position: 'absolute',
+    top: 8,
+    right: 8,
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    backgroundColor: colors.primary,
+  },
   content: { flex: 1, padding: spacing.lg, alignItems: 'center' },
   kicker: {
     color: colors.textMuted,
@@ -221,39 +244,11 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     marginBottom: spacing.sm,
   },
-  shieldCard: {
-    width: '100%',
-    backgroundColor: colors.surface,
-    borderRadius: radius.md,
-    padding: spacing.md,
-    marginBottom: spacing.lg,
-    borderWidth: 1,
-    borderColor: colors.border,
+  allowances: {
+    flexDirection: 'row',
+    gap: spacing.md,
+    marginTop: spacing.lg,
   },
-  shieldTitle: {
-    color: colors.text,
-    fontSize: font.body,
-    fontWeight: '700',
-  },
-  shieldBody: {
-    color: colors.textMuted,
-    fontSize: font.small,
-    lineHeight: 20,
-    marginTop: spacing.xs,
-  },
-  shieldLink: {
-    color: colors.primary,
-    fontSize: font.small,
-    fontWeight: '600',
-    marginTop: spacing.sm,
-  },
-  shieldLinkMuted: {
-    color: colors.textMuted,
-    fontSize: font.small,
-    marginTop: spacing.sm,
-    textDecorationLine: 'underline',
-  },
-  allowances: { flexDirection: 'row', gap: spacing.md },
   allowance: {
     backgroundColor: colors.surfaceAlt,
     borderRadius: radius.md,
@@ -261,7 +256,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.lg,
     alignItems: 'center',
     minWidth: 110,
+    gap: spacing.xs,
   },
-  allowanceIcon: { fontSize: 28, marginBottom: spacing.xs },
   allowanceText: { color: colors.text, fontSize: font.small, fontWeight: '600' },
 });
