@@ -36,8 +36,14 @@ export default function AuthScreen() {
 
           <View style={styles.footer}>
             <Button
-              title="Continue"
+              title="Log in"
+              onPress={() => navigation.navigate('Login')}
+            />
+            <Button
+              title="Create account"
+              variant="secondary"
               onPress={() => navigation.navigate('SignUp')}
+              style={{ marginTop: spacing.sm }}
             />
           </View>
         </KeyboardAvoidingView>

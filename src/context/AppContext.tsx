@@ -44,7 +44,8 @@ interface State {
   settings: AppSettings;
   emergencyContacts: EmergencyContact[];
   monitoring: boolean;
-  onboarded: boolean;
+  /** Email of the account that finished onboarding, if any. */
+  onboardedAccountEmail: string | null;
   account: Account | null;
   stampBooks: Record<string, RestaurantStampBook>;
   vouchers: RedemptionVoucher[];
@@ -60,7 +61,7 @@ const initialState: State = {
   settings: { cameraAllowed: true, goalMinutes: 45, notificationsEnabled: true },
   emergencyContacts: [],
   monitoring: false,
-  onboarded: false,
+  onboardedAccountEmail: null,
   account: null,
   stampBooks: {},
   vouchers: [],
@@ -86,10 +87,22 @@ type Action =
       voucher: RedemptionVoucher;
     };
 
+function migrateHydratePayload(payload: Partial<State>): Partial<State> {
+  const next = { ...payload };
+  const legacy = payload as Partial<State> & { onboarded?: boolean };
+  if (legacy.onboarded !== undefined && next.onboardedAccountEmail === undefined) {
+    next.onboardedAccountEmail =
+      legacy.onboarded && legacy.account ? legacy.account.email : null;
+  }
+  delete (next as { onboarded?: boolean }).onboarded;
+  return next;
+}
+
 function reducer(state: State, action: Action): State {
   switch (action.type) {
     case 'HYDRATE':
-      return { ...state, ...action.payload };
+      if (state.account !== null) return state;
+      return { ...state, ...migrateHydratePayload(action.payload) };
     case 'PING':
       if (state.lockState === 'locked') return state;
       return { ...state, lockState: 'pinged', activeRestaurant: action.restaurant };
@@ -152,21 +165,32 @@ function reducer(state: State, action: Action): State {
     case 'SET_MONITORING':
       return { ...state, monitoring: action.value };
     case 'SET_ONBOARDED':
-      return { ...state, onboarded: true };
+      return {
+        ...state,
+        onboardedAccountEmail: state.account?.email ?? null,
+      };
     case 'UPDATE_SETTINGS':
       return { ...state, settings: { ...state.settings, ...action.patch } };
     case 'SET_CONTACTS':
       return { ...state, emergencyContacts: action.contacts };
     case 'SET_ACCOUNT':
-      return { ...state, account: action.account };
+      return {
+        ...state,
+        account: action.account,
+        onboardedAccountEmail:
+          state.onboardedAccountEmail === action.account.email
+            ? state.onboardedAccountEmail
+            : null,
+      };
     case 'LOG_OUT':
-      return { ...state, account: null };
+      return { ...state, account: null, onboardedAccountEmail: null };
     default:
       return state;
   }
 }
 
 interface ContextValue extends State {
+  onboarded: boolean;
   enableMonitoring: () => Promise<MonitorResult>;
   disableMonitoring: () => Promise<void>;
   ping: (restaurant: Restaurant) => void;
@@ -208,7 +232,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       totalPoints: state.totalPoints,
       settings: state.settings,
       emergencyContacts: state.emergencyContacts,
-      onboarded: state.onboarded,
+      onboardedAccountEmail: state.onboardedAccountEmail,
       account: state.account,
       stampBooks: state.stampBooks,
       vouchers: state.vouchers,
@@ -219,7 +243,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     state.totalPoints,
     state.settings,
     state.emergencyContacts,
-    state.onboarded,
+    state.onboardedAccountEmail,
     state.account,
     state.stampBooks,
     state.vouchers,
@@ -333,9 +357,14 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     [state.stampBooks],
   );
 
+  const onboarded =
+    state.account !== null &&
+    state.onboardedAccountEmail === state.account.email;
+
   const value = useMemo<ContextValue>(
     () => ({
       ...state,
+      onboarded,
       enableMonitoring,
       disableMonitoring,
       ping,
@@ -353,6 +382,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     }),
     [
       state,
+      onboarded,
       enableMonitoring,
       disableMonitoring,
       ping,

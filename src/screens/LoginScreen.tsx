@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import {
-  Alert,
   KeyboardAvoidingView,
   Platform,
   Pressable,
@@ -11,58 +10,43 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import type { RouteProp } from '@react-navigation/native';
 import { colors, font, spacing } from '../theme';
 import Button from '../components/Button';
 import AuthInput from '../components/AuthInput';
-import { findAccountByPhone, formatPhoneDisplay } from '../services/auth';
+import { useApp } from '../context/AppContext';
+import { loginAccount } from '../services/auth';
 import type { RootStackParamList } from '../../App';
 
-type Nav = NativeStackNavigationProp<RootStackParamList, 'SignUp'>;
+type Nav = NativeStackNavigationProp<RootStackParamList, 'Login'>;
+type Route = RouteProp<RootStackParamList, 'Login'>;
 
-export default function SignUpScreen({ navigation }: { navigation: Nav }) {
-  const [firstName, setFirstName] = useState('');
-  const [email, setEmail] = useState('');
-  const [phone, setPhone] = useState('');
+export default function LoginScreen({
+  navigation,
+  route,
+}: {
+  navigation: Nav;
+  route: Route;
+}) {
+  const { logIn } = useApp();
+  const [identifier, setIdentifier] = useState(route.params?.prefillPhone ?? '');
   const [password, setPassword] = useState('');
+  const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
 
-  const valid =
-    firstName.trim().length > 0 &&
-    /\S+@\S+\.\S+/.test(email) &&
-    phone.replace(/\D/g, '').length >= 10 &&
-    password.length >= 6;
+  const valid = identifier.trim().length > 0 && password.length >= 6;
 
   async function handleSubmit() {
     if (!valid || busy) return;
-
     setBusy(true);
-    const existing = await findAccountByPhone(phone);
+    setError(null);
+    const result = await loginAccount(identifier, password);
     setBusy(false);
-
-    if (existing) {
-      Alert.alert(
-        'Account already exists',
-        `A Sobremesa account is already linked to ${formatPhoneDisplay(phone)}. Log in to access your stamps and rewards.`,
-        [
-          { text: 'Cancel', style: 'cancel' },
-          {
-            text: 'Log in',
-            onPress: () =>
-              navigation.navigate('Login', { prefillPhone: phone }),
-          },
-        ],
-      );
+    if (!result.ok) {
+      setError(result.error);
       return;
     }
-
-    navigation.navigate('PhoneVerify', {
-      draft: {
-        firstName: firstName.trim(),
-        email: email.trim(),
-        phone: phone.trim(),
-        password,
-      },
-    });
+    logIn(result.data);
   }
 
   return (
@@ -75,29 +59,17 @@ export default function SignUpScreen({ navigation }: { navigation: Nav }) {
           contentContainerStyle={styles.container}
           keyboardShouldPersistTaps="handled"
         >
-          <Text style={styles.title}>Create account</Text>
+          <Text style={styles.title}>Log in</Text>
           <Text style={styles.subtitle}>
-            You&apos;ll verify your phone number on the next step.
+            Use the phone number or email on your account.
           </Text>
 
           <View style={styles.fields}>
             <AuthInput
-              placeholder="First name"
-              value={firstName}
-              onChangeText={setFirstName}
-              autoCapitalize="words"
-            />
-            <AuthInput
-              placeholder="Email"
-              value={email}
-              onChangeText={setEmail}
+              placeholder="Phone or email"
+              value={identifier}
+              onChangeText={setIdentifier}
               keyboardType="email-address"
-            />
-            <AuthInput
-              placeholder="Phone #"
-              value={phone}
-              onChangeText={setPhone}
-              keyboardType="phone-pad"
             />
             <AuthInput
               placeholder="Password"
@@ -107,20 +79,30 @@ export default function SignUpScreen({ navigation }: { navigation: Nav }) {
             />
           </View>
 
+          {error ? <Text style={styles.error}>{error}</Text> : null}
+
           <Button
-            title="Continue"
+            title="Log in"
             onPress={handleSubmit}
             disabled={!valid}
             loading={busy}
           />
 
           <Pressable
-            onPress={() => navigation.navigate('Login')}
+            onPress={() => navigation.navigate('ForgotPassword')}
+            hitSlop={8}
+            style={styles.linkWrap}
+          >
+            <Text style={styles.link}>Forgot password?</Text>
+          </Pressable>
+
+          <Pressable
+            onPress={() => navigation.navigate('SignUp')}
             hitSlop={8}
             style={styles.linkWrap}
           >
             <Text style={styles.linkMuted}>
-              Already have an account? <Text style={styles.link}>Log in</Text>
+              New here? <Text style={styles.link}>Create account</Text>
             </Text>
           </Pressable>
         </ScrollView>
@@ -136,7 +118,7 @@ const styles = StyleSheet.create({
   title: {
     color: colors.text,
     fontSize: font.heading,
-    fontWeight: '600',
+    fontWeight: '700',
     marginBottom: spacing.xs,
   },
   subtitle: {
@@ -145,8 +127,14 @@ const styles = StyleSheet.create({
     lineHeight: 22,
     marginBottom: spacing.lg,
   },
-  fields: { gap: spacing.md, marginBottom: spacing.lg },
-  linkWrap: { alignItems: 'center', marginTop: spacing.lg },
-  link: { color: colors.primary, fontWeight: '600' },
+  fields: { gap: spacing.md, marginBottom: spacing.md },
+  error: {
+    color: colors.danger,
+    fontSize: font.small,
+    marginBottom: spacing.md,
+    lineHeight: 18,
+  },
+  linkWrap: { alignItems: 'center', marginTop: spacing.md },
+  link: { color: colors.primary, fontSize: font.body, fontWeight: '600' },
   linkMuted: { color: colors.textMuted, fontSize: font.body },
 });

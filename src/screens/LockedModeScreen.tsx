@@ -12,6 +12,7 @@ import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { colors, font, radius, spacing } from '../theme';
 import { useApp } from '../context/AppContext';
 import Button from '../components/Button';
+import ConfirmDialog from '../components/ConfirmDialog';
 import StampBookIcon from '../components/StampBookIcon';
 import EmergencyPhoneIcon from '../components/EmergencyPhoneIcon';
 import CameraIcon from '../components/CameraIcon';
@@ -37,6 +38,7 @@ export default function LockedModeScreen({
     useApp();
   const [now, setNow] = useState(Date.now());
   const [leaveCount, setLeaveCount] = useState(0);
+  const [showEndEarly, setShowEndEarly] = useState(false);
   const sessionBook = activeSession
     ? getBookForRestaurant(activeSession.restaurantId)
     : null;
@@ -65,31 +67,21 @@ export default function LockedModeScreen({
   }, []);
 
   function finish(completed: boolean) {
+    setShowEndEarly(false);
     endLock(completed);
     navigation.replace('SessionComplete');
-  }
-
-  function handleEndEarly() {
-    Alert.alert(
-      'Leave the table early?',
-      'Your phone-free session isn’t complete yet. You won’t earn a stamp for this visit.',
-      [
-        { text: 'Stay', style: 'cancel' },
-        { text: 'End anyway', style: 'destructive', onPress: () => finish(false) },
-      ],
-    );
   }
 
   function handleEmergency() {
     if (emergencyContacts.length === 0) {
       Alert.alert(
         'No emergency contacts',
-        'Add contacts in Settings so they’re reachable during sessions.',
+        'Add contacts in Settings so they\'re reachable during sessions.',
       );
       return;
     }
     const buttons = emergencyContacts.map((c) => ({
-      text: `${c.name}`,
+      text: c.name,
       onPress: () => Linking.openURL(`tel:${c.phone}`),
     }));
     Alert.alert('Emergency contacts', 'Call who you need:', [
@@ -161,15 +153,30 @@ export default function LockedModeScreen({
         <View style={{ flex: 1 }} />
 
         {goalReached ? (
-          <Button title="Finish & claim reward" onPress={() => finish(true)} />
+          <Button title="Finish session" onPress={() => finish(true)} />
         ) : (
           <Button
             title="End session early"
             variant="ghost"
-            onPress={handleEndEarly}
+            onPress={() => setShowEndEarly(true)}
           />
         )}
       </View>
+
+      <ConfirmDialog
+        visible={showEndEarly}
+        title="Leave the table early?"
+        message="Your phone-free session isn't complete yet. You won't earn a stamp for this visit."
+        onDismiss={() => setShowEndEarly(false)}
+        actions={[
+          { label: 'Stay', variant: 'secondary', onPress: () => setShowEndEarly(false) },
+          {
+            label: 'End anyway',
+            variant: 'danger',
+            onPress: () => finish(false),
+          },
+        ]}
+      />
     </SafeAreaView>
   );
 }

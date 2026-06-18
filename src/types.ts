@@ -17,10 +17,12 @@ export interface Restaurant {
 }
 
 export interface Account {
+  id?: string;
   firstName: string;
   email: string;
   phone: string;
   password: string;
+  phoneVerified?: boolean;
 }
 
 export interface EmergencyContact {

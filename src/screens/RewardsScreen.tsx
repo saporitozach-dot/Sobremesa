@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import {
   Pressable,
   ScrollView,
@@ -15,6 +15,7 @@ import { SAMPLE_RESTAURANTS } from '../data/restaurants';
 import StampRow from '../components/StampRow';
 import RewardIcon from '../components/RewardIcon';
 import Button from '../components/Button';
+import RedeemConfirmSheet from '../components/RedeemConfirmSheet';
 import { canRedeem } from '../services/stamps';
 import { STAMPS_FOR_REWARD } from '../types';
 import type { RootStackParamList } from '../../App';
@@ -31,6 +32,7 @@ export default function RewardsScreen({
 }) {
   const { getBookForRestaurant, vouchers } = useApp();
   const returnTo = route.params?.returnTo;
+  const [redeemRestaurantId, setRedeemRestaurantId] = useState<string | null>(null);
 
   const visited = SAMPLE_RESTAURANTS.filter((r) => {
     const book = getBookForRestaurant(r.id);
@@ -40,10 +42,6 @@ export default function RewardsScreen({
   const notVisited = SAMPLE_RESTAURANTS.filter(
     (r) => !visited.some((v) => v.id === r.id),
   );
-
-  function handleRedeem(restaurantId: string) {
-    navigation.navigate('ConfirmRedeem', { restaurantId, returnTo });
-  }
 
   function openVoucher(voucherId: string) {
     navigation.navigate('RedeemVoucher', { voucherId, returnTo });
@@ -103,7 +101,7 @@ export default function RewardsScreen({
                   {ready && (
                     <Button
                       title="Redeem"
-                      onPress={() => handleRedeem(r.id)}
+                      onPress={() => setRedeemRestaurantId(r.id)}
                       style={{ marginTop: spacing.md }}
                     />
                   )}
@@ -136,6 +134,16 @@ export default function RewardsScreen({
           </>
         )}
       </ScrollView>
+
+      <RedeemConfirmSheet
+        visible={redeemRestaurantId !== null}
+        restaurantId={redeemRestaurantId}
+        onClose={() => setRedeemRestaurantId(null)}
+        onVoucher={(voucherId) => {
+          setRedeemRestaurantId(null);
+          navigation.navigate('RedeemVoucher', { voucherId, returnTo });
+        }}
+      />
     </SafeAreaView>
   );
 }

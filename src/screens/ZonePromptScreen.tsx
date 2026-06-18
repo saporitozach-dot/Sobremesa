@@ -1,13 +1,19 @@
-import React from 'react';
-import { StyleSheet, Text, View } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import React, { useEffect, useState } from 'react';
+import { ScrollView, StyleSheet, Text, View } from 'react-native';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { colors, font, radius, spacing } from '../theme';
 import { useApp } from '../context/AppContext';
 import Button from '../components/Button';
 import ArrivalIcon from '../components/ArrivalIcon';
 import StampRow from '../components/StampRow';
+import SessionStartModal from '../components/SessionStartModal';
 import { MIN_STAMP_MINUTES, STAMPS_FOR_REWARD } from '../types';
+import { openSystemDistractionSettings } from '../services/appShield';
+import {
+  hasSeenAppBlockSetup,
+  markAppBlockSetupSeen,
+} from '../services/sessionPrefs';
 import type { RootStackParamList } from '../../App';
 
 type Nav = NativeStackNavigationProp<RootStackParamList, 'ZonePrompt'>;
@@ -15,15 +21,28 @@ type Nav = NativeStackNavigationProp<RootStackParamList, 'ZonePrompt'>;
 export default function ZonePromptScreen({ navigation }: { navigation: Nav }) {
   const { activeRestaurant, settings, startLock, dismissPing, getBookForRestaurant } =
     useApp();
+  const insets = useSafeAreaInsets();
+  const [showStartModal, setShowStartModal] = useState(false);
+  const [firstTimeSetup, setFirstTimeSetup] = useState(true);
+
+  useEffect(() => {
+    hasSeenAppBlockSetup().then((seen) => setFirstTimeSetup(!seen));
+  }, []);
 
   if (!activeRestaurant) {
     navigation.goBack();
     return null;
   }
 
-  function handleStart() {
+  function beginSession() {
+    setShowStartModal(false);
+    void markAppBlockSetupSeen();
     startLock(activeRestaurant!);
     navigation.replace('Locked');
+  }
+
+  function handlePutPhoneAway() {
+    setShowStartModal(true);
   }
 
   function handleSkip() {
@@ -41,13 +60,22 @@ export default function ZonePromptScreen({ navigation }: { navigation: Nav }) {
     book.lastStampDate === new Date().toISOString().slice(0, 10);
 
   return (
-    <SafeAreaView style={styles.safe}>
-      <View style={styles.content}>
+    <SafeAreaView style={styles.safe} edges={['bottom', 'left', 'right']}>
+      <ScrollView
+        contentContainerStyle={[
+          styles.scroll,
+          { paddingTop: Math.max(insets.top, spacing.md) },
+        ]}
+        keyboardShouldPersistTaps="handled"
+        bounces={false}
+      >
         <View style={styles.iconWrap}>
-          <ArrivalIcon size={96} />
+          <ArrivalIcon size={80} />
         </View>
         <Text style={styles.kicker}>You've arrived at</Text>
-        <Text style={styles.name}>{activeRestaurant.name}</Text>
+        <Text style={styles.name} numberOfLines={3}>
+          {activeRestaurant.name}
+        </Text>
         <Text style={styles.cuisine}>{activeRestaurant.cuisine}</Text>
 
         <View style={styles.card}>
@@ -75,14 +103,23 @@ export default function ZonePromptScreen({ navigation }: { navigation: Nav }) {
           </View>
         </View>
 
-        <Button title="Put my phone away" onPress={handleStart} />
+        <Button title="Put my phone away" onPress={handlePutPhoneAway} />
         <Button
           title="Not right now"
           variant="ghost"
           onPress={handleSkip}
           style={{ marginTop: spacing.sm }}
         />
-      </View>
+      </ScrollView>
+
+      <SessionStartModal
+        visible={showStartModal}
+        firstTime={firstTimeSetup}
+        cameraAllowed={settings.cameraAllowed}
+        onOpenSettings={openSystemDistractionSettings}
+        onContinue={beginSession}
+        onCancel={() => setShowStartModal(false)}
+      />
     </SafeAreaView>
   );
 }
@@ -98,10 +135,16 @@ function DetailRow({ label, value }: { label: string; value: string }) {
 
 const styles = StyleSheet.create({
   safe: { flex: 1, backgroundColor: colors.bg },
-  content: { flex: 1, padding: spacing.lg, justifyContent: 'center' },
+  scroll: {
+    flexGrow: 1,
+    paddingHorizontal: spacing.lg,
+    paddingBottom: spacing.xl,
+    alignItems: 'center',
+  },
   iconWrap: {
     alignItems: 'center',
-    marginBottom: spacing.lg,
+    marginBottom: spacing.md,
+    marginTop: spacing.sm,
   },
   kicker: {
     color: colors.textMuted,
@@ -112,10 +155,11 @@ const styles = StyleSheet.create({
   name: {
     color: colors.text,
     textAlign: 'center',
-    fontSize: font.title,
+    fontSize: 28,
     fontWeight: '800',
-    lineHeight: 38,
+    lineHeight: 34,
     marginTop: spacing.xs,
+    maxWidth: '100%',
   },
   cuisine: {
     color: colors.textMuted,
@@ -123,7 +167,7 @@ const styles = StyleSheet.create({
     fontSize: font.body,
     lineHeight: 22,
     marginTop: spacing.xs,
-    marginBottom: spacing.lg,
+    marginBottom: spacing.md,
   },
   card: {
     backgroundColor: colors.surface,
@@ -131,6 +175,7 @@ const styles = StyleSheet.create({
     padding: spacing.lg,
     marginBottom: spacing.lg,
     gap: spacing.sm,
+    width: '100%',
   },
   cardTitle: {
     color: colors.text,

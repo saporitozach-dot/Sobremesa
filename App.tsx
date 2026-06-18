@@ -11,7 +11,10 @@ import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { AppProvider, useApp } from './src/context/AppContext';
 import { colors } from './src/theme';
 import AuthScreen from './src/screens/AuthScreen';
+import LoginScreen from './src/screens/LoginScreen';
 import SignUpScreen from './src/screens/SignUpScreen';
+import PhoneVerifyScreen from './src/screens/PhoneVerifyScreen';
+import ForgotPasswordScreen from './src/screens/ForgotPasswordScreen';
 import OnboardingScreen from './src/screens/OnboardingScreen';
 import HomeScreen from './src/screens/HomeScreen';
 import ZonePromptScreen from './src/screens/ZonePromptScreen';
@@ -25,7 +28,17 @@ import RestaurantDetailScreen from './src/screens/RestaurantDetailScreen';
 
 export type RootStackParamList = {
   Auth: undefined;
+  Login: { prefillPhone?: string } | undefined;
   SignUp: undefined;
+  PhoneVerify: {
+    draft: {
+      firstName: string;
+      email: string;
+      phone: string;
+      password: string;
+    };
+  };
+  ForgotPassword: undefined;
   Onboarding: undefined;
   Home: undefined;
   RestaurantDetail: { restaurantId: string; distanceMiles?: number };
@@ -86,6 +99,21 @@ function RootNavigator() {
             component={SignUpScreen}
             options={{ title: 'Sign up', headerBackTitle: 'Back' }}
           />
+          <Stack.Screen
+            name="Login"
+            component={LoginScreen}
+            options={{ title: 'Log in', headerBackTitle: 'Back' }}
+          />
+          <Stack.Screen
+            name="PhoneVerify"
+            component={PhoneVerifyScreen}
+            options={{ title: 'Verify phone', headerBackTitle: 'Back' }}
+          />
+          <Stack.Screen
+            name="ForgotPassword"
+            component={ForgotPasswordScreen}
+            options={{ title: 'Forgot password', headerBackTitle: 'Back' }}
+          />
         </>
       ) : !onboarded ? (
         <Stack.Screen
@@ -108,7 +136,7 @@ function RootNavigator() {
           <Stack.Screen
             name="ZonePrompt"
             component={ZonePromptScreen}
-            options={{ presentation: 'modal', headerShown: true, headerTitle: '' }}
+            options={{ presentation: 'modal', headerShown: false }}
           />
           <Stack.Screen
             name="Locked"
@@ -133,7 +161,7 @@ function RootNavigator() {
           <Stack.Screen
             name="ConfirmRedeem"
             component={ConfirmRedeemScreen}
-            options={{ title: 'Confirm', presentation: 'modal' }}
+            options={{ title: 'Confirm', presentation: 'modal', headerShown: false }}
           />
           <Stack.Screen
             name="RedeemVoucher"

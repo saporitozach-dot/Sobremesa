@@ -1,3 +1,4 @@
+import { Linking } from 'react-native';
 import * as Location from 'expo-location';
 import * as TaskManager from 'expo-task-manager';
 import * as Notifications from 'expo-notifications';
@@ -147,21 +148,57 @@ export async function requestPermissions(): Promise<{
   foreground: boolean;
   background: boolean;
 }> {
-  const fg = await Location.requestForegroundPermissionsAsync();
-  let bg = { granted: false } as { granted: boolean };
-  if (fg.granted) {
-    try {
-      bg = await Location.requestBackgroundPermissionsAsync();
-    } catch {
-      bg = { granted: false };
-    }
-  }
+  const result = await promptAlwaysLocationAccess();
   try {
     await Notifications.requestPermissionsAsync();
   } catch {
     // Notifications are limited in Expo Go; don't block onboarding.
   }
-  return { foreground: fg.granted, background: bg.granted };
+  return { foreground: result.foreground, background: result.background };
+}
+
+export type LocationPromptResult = {
+  foreground: boolean;
+  background: boolean;
+  openedSettings: boolean;
+};
+
+/**
+ * Walks the user through foreground permission, then the system "Always Allow"
+ * upgrade prompt. If the OS won't show dialogs again, opens app settings.
+ */
+export async function promptAlwaysLocationAccess(): Promise<LocationPromptResult> {
+  let fg = await Location.getForegroundPermissionsAsync();
+  if (!fg.granted) {
+    fg = await Location.requestForegroundPermissionsAsync();
+  }
+
+  if (!fg.granted) {
+    if (fg.canAskAgain === false) {
+      await Linking.openSettings();
+      return { foreground: false, background: false, openedSettings: true };
+    }
+    return { foreground: false, background: false, openedSettings: false };
+  }
+
+  let bg = await Location.getBackgroundPermissionsAsync();
+  if (!bg.granted) {
+    try {
+      bg = await Location.requestBackgroundPermissionsAsync();
+    } catch {
+      bg = { granted: false, canAskAgain: true } as Location.PermissionResponse;
+    }
+  }
+
+  if (!bg.granted) {
+    if (bg.canAskAgain === false) {
+      await Linking.openSettings();
+      return { foreground: true, background: false, openedSettings: true };
+    }
+    return { foreground: true, background: false, openedSettings: false };
+  }
+
+  return { foreground: true, background: true, openedSettings: false };
 }
 
 /** Prompt for Always Allow if the user only granted while-in-use. */
