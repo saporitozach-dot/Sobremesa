@@ -1,5 +1,5 @@
-import React, { useEffect, useMemo, useRef, useState } from 'react';
-import { Alert, Animated, Linking, StyleSheet, Text, View } from 'react-native';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { Animated, Linking, StyleSheet, Text, View } from 'react-native';
 import Svg, { Circle } from 'react-native-svg';
 import { LinearGradient } from 'expo-linear-gradient';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
@@ -19,7 +19,14 @@ export default function LockedModeScreen({ navigation }: Props) {
   const insets = useSafeAreaInsets();
   const goalSeconds = (activeSession?.goalMinutes ?? settings.goalMinutes) * 60;
   const [elapsed, setElapsed] = useState(0);
+  const [confirmEnd, setConfirmEnd] = useState(false);
   const pulse = useRef(new Animated.Value(1)).current;
+
+  const exitSession = useCallback(() => {
+    setConfirmEnd(false);
+    endSessionEarly();
+    navigation.reset({ index: 0, routes: [{ name: 'Home' }] });
+  }, [endSessionEarly, navigation]);
 
   useEffect(() => {
     if (!activeSession) return;
@@ -61,7 +68,7 @@ export default function LockedModeScreen({ navigation }: Props) {
     return (
       <LinearGradient colors={[colors.bg, colors.bgDeep]} style={styles.empty}>
         <Text style={styles.title}>No active session</Text>
-        <Button label="Home" onPress={() => navigation.navigate('Home')} />
+        <Button label="Home" onPress={() => navigation.reset({ index: 0, routes: [{ name: 'Home' }] })} />
       </LinearGradient>
     );
   }
@@ -126,23 +133,15 @@ export default function LockedModeScreen({ navigation }: Props) {
         {settings.cameraAllowed ? (
           <Button label="Open camera" variant="secondary" onPress={() => Linking.openURL('photos-redirect://')} />
         ) : null}
-        <Button
-          label="End early"
-          variant="ghost"
-          onPress={() => {
-            Alert.alert('End session?', 'You will not earn a stamp.', [
-              { text: 'Cancel', style: 'cancel' },
-              {
-                text: 'End',
-                style: 'destructive',
-                onPress: () => {
-                  endSessionEarly();
-                  navigation.navigate('Home');
-                },
-              },
-            ]);
-          }}
-        />
+        {confirmEnd ? (
+          <View style={styles.confirm}>
+            <Text style={styles.confirmText}>End session? You will not earn a stamp.</Text>
+            <Button label="End session" variant="danger" onPress={exitSession} />
+            <Button label="Keep going" variant="ghost" onPress={() => setConfirmEnd(false)} />
+          </View>
+        ) : (
+          <Button label="End early" variant="ghost" onPress={() => setConfirmEnd(true)} />
+        )}
       </View>
     </LinearGradient>
   );
@@ -220,5 +219,18 @@ const styles = StyleSheet.create({
     maxWidth: layout.maxContentWidth,
     alignSelf: 'center',
     gap: 0,
+  },
+  confirm: {
+    width: '100%',
+    gap: spacing.xs,
+    paddingTop: spacing.sm,
+  },
+  confirmText: {
+    color: colors.textMuted,
+    fontSize: type.small,
+    fontFamily: fonts.sans,
+    textAlign: 'center',
+    marginBottom: spacing.sm,
+    paddingHorizontal: spacing.md,
   },
 });

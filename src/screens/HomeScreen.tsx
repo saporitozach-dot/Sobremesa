@@ -36,7 +36,7 @@ export default function HomeScreen({ navigation }: Props) {
           style={styles.iconBtn}
           accessibilityLabel="Settings"
         >
-          <SettingsIcon size={18} color={colors.textMuted} />
+          <SettingsIcon size={20} color={colors.primary} />
         </PressableScale>
       </View>
 

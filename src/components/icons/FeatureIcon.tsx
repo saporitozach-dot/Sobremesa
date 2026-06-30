@@ -95,13 +95,18 @@ export function ChevronRight({ size = 14, color = colors.primary }: Pick<IconPro
 
 export function SettingsIcon({ size = 20, color = colors.textMuted }: Pick<IconProps, 'size' | 'color'>) {
   return (
-    <Svg width={size} height={size} viewBox="0 0 20 20" fill="none">
-      <Circle cx="10" cy="10" r="2.5" stroke={color} strokeWidth="1.5" />
+    <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
       <Path
-        d="M10 2.5 L10 5 M10 15 L10 17.5 M2.5 10 L5 10 M15 10 L17.5 10 M4.8 4.8 L6.6 6.6 M13.4 13.4 L15.2 15.2 M4.8 15.2 L6.6 13.4 M13.4 6.6 L15.2 4.8"
+        d="M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6z"
         stroke={color}
-        strokeWidth="1.5"
+        strokeWidth="1.75"
+      />
+      <Path
+        d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"
+        stroke={color}
+        strokeWidth="1.75"
         strokeLinecap="round"
+        strokeLinejoin="round"
       />
     </Svg>
   );

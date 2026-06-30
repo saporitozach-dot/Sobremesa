@@ -21,6 +21,7 @@ export default function PressableScale({
   return (
     <Pressable
       {...rest}
+      style={style}
       onPressIn={(e) => {
         Animated.spring(scale, { toValue: scaleTo, useNativeDriver: true, ...motion.spring }).start();
         onPressIn?.(e);
@@ -30,7 +31,9 @@ export default function PressableScale({
         onPressOut?.(e);
       }}
     >
-      <Animated.View style={[style, { transform: [{ scale }] }]}>{children}</Animated.View>
+      <Animated.View style={{ transform: [{ scale }], alignSelf: 'stretch', alignItems: 'center', justifyContent: 'center' }}>
+        {children}
+      </Animated.View>
     </Pressable>
   );
 }
