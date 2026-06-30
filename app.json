@@ -1,0 +1,58 @@
+{
+  "expo": {
+    "name": "Sobremesa",
+    "slug": "sobremesa",
+    "version": "0.1.0",
+    "orientation": "portrait",
+    "scheme": "sobremesa",
+    "userInterfaceStyle": "automatic",
+    "newArchEnabled": false,
+    "icon": "./assets/icon.png",
+    "splash": {
+      "image": "./assets/splash.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#1B2A24"
+    },
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.sobremesa.app",
+      "infoPlist": {
+        "NSLocationWhenInUseUsageDescription": "Sobremesa uses your location to know when you've arrived at a partner restaurant so it can start a phone-free dining session.",
+        "NSLocationAlwaysAndWhenInUseUsageDescription": "Sobremesa monitors restaurant zones in the background so it can invite you into a phone-free session the moment you sit down.",
+        "UIBackgroundModes": [
+          "location",
+          "fetch"
+        ]
+      }
+    },
+    "android": {
+      "package": "com.sobremesa.app",
+      "softwareKeyboardLayoutMode": "resize",
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/adaptive-icon.png",
+        "backgroundColor": "#1B2A24"
+      },
+      "permissions": [
+        "ACCESS_FINE_LOCATION",
+        "ACCESS_COARSE_LOCATION",
+        "ACCESS_BACKGROUND_LOCATION",
+        "FOREGROUND_SERVICE",
+        "POST_NOTIFICATIONS"
+      ]
+    },
+    "web": {
+      "favicon": "./assets/favicon.png"
+    },
+    "plugins": [
+      [
+        "expo-location",
+        {
+          "locationAlwaysAndWhenInUsePermission": "Sobremesa monitors restaurant zones in the background so it can invite you into a phone-free session.",
+          "isAndroidBackgroundLocationEnabled": true
+        }
+      ],
+      "expo-notifications",
+      "expo-font"
+    ]
+  }
+}
