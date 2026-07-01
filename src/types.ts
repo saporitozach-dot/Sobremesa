@@ -66,3 +66,13 @@ export type ActiveZone = {
   restaurantId: string;
   enteredAt: string;
 };
+
+export type SessionCompleteResult = {
+  restaurantId: string;
+  restaurantName: string;
+  goalMinutes: number;
+  stampCount: number;
+  stampsRequired: number;
+  rewardLabel: string;
+  voucherUnlocked: boolean;
+};

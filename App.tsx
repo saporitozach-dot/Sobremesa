@@ -28,6 +28,7 @@ import RewardsScreen from './src/screens/RewardsScreen';
 import RedeemVoucherScreen from './src/screens/RedeemVoucherScreen';
 import ConfirmRedeemScreen from './src/screens/ConfirmRedeemScreen';
 import RestaurantDetailScreen from './src/screens/RestaurantDetailScreen';
+import ActiveSessionRedirect from './src/navigation/ActiveSessionRedirect';
 
 export type RootStackParamList = {
   Auth: undefined;
@@ -47,7 +48,15 @@ export type RootStackParamList = {
   RestaurantDetail: { restaurantId: string; distanceMiles?: number };
   ZonePrompt: undefined;
   Locked: undefined;
-  SessionComplete: undefined;
+  SessionComplete: {
+    restaurantId: string;
+    restaurantName: string;
+    goalMinutes: number;
+    stampCount: number;
+    stampsRequired: number;
+    rewardLabel: string;
+    voucherUnlocked: boolean;
+  };
   Settings: undefined;
   Rewards: { returnTo?: 'Locked' } | undefined;
   ConfirmRedeem: { restaurantId: string; returnTo?: 'Locked' };
@@ -241,6 +250,7 @@ export default function App() {
           <AppProvider>
             <StatusBar style="light" />
             <NavigationContainer theme={navTheme}>
+              <ActiveSessionRedirect />
               <RootNavigator />
             </NavigationContainer>
           </AppProvider>

@@ -20,6 +20,7 @@ import {
   Account,
   ActiveZone,
   AppSettings,
+  SessionCompleteResult,
   SessionRecord,
   SignUpDraft,
   StampBalance,
@@ -36,6 +37,7 @@ type PersistedState = {
   stamps: StampBalance[];
   sessions: SessionRecord[];
   vouchers: Voucher[];
+  activeSession: SessionRecord | null;
 };
 
 type AppContextValue = {
@@ -57,8 +59,8 @@ type AppContextValue = {
   simulateArrival: (restaurantId?: string) => void;
   dismissZonePrompt: () => void;
   startSession: () => Promise<void>;
-  endSessionEarly: () => void;
-  completeSession: () => Promise<SessionRecord | null>;
+  endSessionEarly: () => Promise<void>;
+  completeSession: () => Promise<SessionCompleteResult | null>;
   redeemVoucher: (voucherId: string) => Promise<void>;
   stampCountFor: (restaurantId: string) => number;
 };
@@ -92,15 +94,16 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
 
   const persist = useCallback(async (next: Partial<PersistedState>) => {
     const snapshot: PersistedState = {
-      account: next.account ?? account,
-      onboarded: next.onboarded ?? onboarded,
+      account: next.account !== undefined ? next.account : account,
+      onboarded: next.onboarded !== undefined ? next.onboarded : onboarded,
       settings: next.settings ?? settings,
       stamps: next.stamps ?? stamps,
       sessions: next.sessions ?? sessions,
       vouchers: next.vouchers ?? vouchers,
+      activeSession: next.activeSession !== undefined ? next.activeSession : activeSession,
     };
     await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(snapshot));
-  }, [account, onboarded, settings, stamps, sessions, vouchers]);
+  }, [account, onboarded, settings, stamps, sessions, vouchers, activeSession]);
 
   useEffect(() => {
     (async () => {
@@ -114,6 +117,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
           setStamps(data.stamps ?? []);
           setSessions(data.sessions ?? []);
           setVouchers(data.vouchers ?? []);
+          setActiveSession(data.activeSession ?? null);
         }
       } finally {
         setHydrated(true);
@@ -188,7 +192,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     setOnboarded(false);
     setActiveSession(null);
     setPendingRestaurantId(null);
-    await persist({ account: null, onboarded: false });
+    await persist({ account: null, onboarded: false, activeSession: null });
   }, [persist]);
 
   const completeOnboarding = useCallback(async () => {
@@ -228,13 +232,15 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     };
     setActiveSession(session);
     setPendingRestaurantId(null);
-  }, [activeZone?.restaurantId, pendingRestaurantId, settings.goalMinutes]);
+    await persist({ activeSession: session });
+  }, [activeZone?.restaurantId, pendingRestaurantId, settings.goalMinutes, persist]);
 
-  const endSessionEarly = useCallback(() => {
+  const endSessionEarly = useCallback(async () => {
     setActiveSession(null);
-  }, []);
+    await persist({ activeSession: null });
+  }, [persist]);
 
-  const completeSession = useCallback(async () => {
+  const completeSession = useCallback(async (): Promise<SessionCompleteResult | null> => {
     if (!activeSession) return null;
 
     const completed: SessionRecord = {
@@ -251,8 +257,23 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       ? stamps.map((s) => (s.restaurantId === completed.restaurantId ? { ...s, count: nextCount } : s))
       : [...stamps, { restaurantId: completed.restaurantId, count: nextCount }];
 
+    const stampsRequired = restaurant?.stampsRequired ?? nextCount;
+    const rewardLabel = restaurant?.rewardLabel ?? 'Partner reward';
+    const voucherUnlocked = Boolean(restaurant && nextCount >= restaurant.stampsRequired);
+    const displayStampCount = voucherUnlocked ? 0 : nextCount;
+
+    const result: SessionCompleteResult = {
+      restaurantId: completed.restaurantId,
+      restaurantName: completed.restaurantName,
+      goalMinutes: completed.goalMinutes,
+      stampCount: displayStampCount,
+      stampsRequired,
+      rewardLabel,
+      voucherUnlocked,
+    };
+
     let nextVouchers = vouchers;
-    if (restaurant && nextCount >= restaurant.stampsRequired) {
+    if (voucherUnlocked && restaurant) {
       const voucher: Voucher = {
         id: makeId(),
         restaurantId: restaurant.id,
@@ -269,15 +290,25 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       setVouchers(nextVouchers);
       setSessions(nextSessions);
       setActiveSession(null);
-      await persist({ sessions: nextSessions, stamps: resetStamps, vouchers: nextVouchers });
-      return completed;
+      await persist({
+        sessions: nextSessions,
+        stamps: resetStamps,
+        vouchers: nextVouchers,
+        activeSession: null,
+      });
+      return result;
     }
 
     setStamps(nextStamps);
     setSessions(nextSessions);
     setActiveSession(null);
-    await persist({ sessions: nextSessions, stamps: nextStamps, vouchers: nextVouchers });
-    return completed;
+    await persist({
+      sessions: nextSessions,
+      stamps: nextStamps,
+      vouchers: nextVouchers,
+      activeSession: null,
+    });
+    return result;
   }, [activeSession, sessions, stamps, vouchers, persist]);
 
   const redeemVoucher = useCallback(async (voucherId: string) => {

@@ -24,9 +24,15 @@ export default function LockedModeScreen({ navigation }: Props) {
 
   const exitSession = useCallback(() => {
     setConfirmEnd(false);
-    endSessionEarly();
+    void endSessionEarly();
     navigation.reset({ index: 0, routes: [{ name: 'Home' }] });
   }, [endSessionEarly, navigation]);
+
+  const simulateComplete = useCallback(async () => {
+    setConfirmEnd(false);
+    const result = await completeSession();
+    if (result) navigation.replace('SessionComplete', result);
+  }, [completeSession, navigation]);
 
   useEffect(() => {
     if (!activeSession) return;
@@ -50,7 +56,9 @@ export default function LockedModeScreen({ navigation }: Props) {
 
   useEffect(() => {
     if (elapsed >= goalSeconds && activeSession) {
-      completeSession().then(() => navigation.replace('SessionComplete'));
+      completeSession().then((result) => {
+        if (result) navigation.replace('SessionComplete', result);
+      });
     }
   }, [elapsed, goalSeconds, activeSession, completeSession, navigation]);
 
@@ -82,6 +90,7 @@ export default function LockedModeScreen({ navigation }: Props) {
         <Text style={styles.kicker}>Locked mode</Text>
         <Text style={styles.title}>Phone down</Text>
         <Text style={styles.subtitle}>{activeSession.restaurantName}</Text>
+        <Text style={styles.sessionNote}>Your session is active — stay in Sobremesa until you finish.</Text>
 
         <Animated.View style={[styles.ringWrap, { transform: [{ scale: pulse }] }]}>
           <Svg width={ringSize} height={ringSize}>
@@ -132,6 +141,9 @@ export default function LockedModeScreen({ navigation }: Props) {
       <View style={styles.actions}>
         {settings.cameraAllowed ? (
           <Button label="Open camera" variant="secondary" onPress={() => Linking.openURL('photos-redirect://')} />
+        ) : null}
+        {__DEV__ && !confirmEnd ? (
+          <Button label="Simulate complete" variant="secondary" onPress={simulateComplete} />
         ) : null}
         {confirmEnd ? (
           <View style={styles.confirm}>
@@ -188,7 +200,17 @@ const styles = StyleSheet.create({
     fontFamily: fonts.sans,
     marginTop: spacing.xs,
     textAlign: 'center',
+    marginBottom: spacing.xs,
+  },
+  sessionNote: {
+    color: colors.primary,
+    fontSize: type.caption,
+    fontFamily: fonts.sansMedium,
+    textAlign: 'center',
+    letterSpacing: 0.3,
     marginBottom: spacing.lg,
+    maxWidth: 280,
+    lineHeight: 18,
   },
   ringWrap: {
     alignItems: 'center',

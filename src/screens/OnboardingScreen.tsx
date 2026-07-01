@@ -3,6 +3,7 @@ import {
   Animated,
   Dimensions,
   Easing,
+  Linking,
   StyleSheet,
   Text,
   View,
@@ -30,6 +31,7 @@ type StepConfig = {
   kicker: string;
   title: string;
   body: string;
+  footnote?: string;
   icon: FeatureIconName;
   showBrand: boolean;
 };
@@ -39,6 +41,7 @@ const STEPS: StepConfig[] = [
     kicker: 'Welcome in',
     title: 'Leave the scroll behind',
     body: 'Phone-free dining at partner tables.',
+    footnote: 'Sobremesa keeps your session active — put the phone down and stay present.',
     icon: 'dining',
     showBrand: true,
   },
@@ -52,15 +55,16 @@ const STEPS: StepConfig[] = [
   {
     kicker: 'You are in',
     title: 'We find you at the table',
-    body: 'Location and notifications — only when you arrive.',
+    body: 'Location lets us know when you arrive. Notifications invite you into a session.',
+    footnote: 'We only check at partner restaurants — not while you are elsewhere.',
     icon: 'setup',
     showBrand: false,
   },
 ];
 
-type SlideProps = StepConfig & { step: number };
+type SlideProps = StepConfig & { step: number; isLast: boolean };
 
-function OnboardingSlide({ kicker, title, body, icon, showBrand, step }: SlideProps) {
+function OnboardingSlide({ kicker, title, body, footnote, icon, showBrand, step, isLast }: SlideProps) {
   return (
     <View style={styles.slide}>
       <StaggeredFadeIn index={0} trigger={step} distance={8}>
@@ -86,6 +90,20 @@ function OnboardingSlide({ kicker, title, body, icon, showBrand, step }: SlidePr
       <StaggeredFadeIn index={3} trigger={step} distance={10} style={styles.copyWrap}>
         <Text style={[text.bodyMuted, styles.centerText]}>{body}</Text>
       </StaggeredFadeIn>
+
+      {footnote ? (
+        <StaggeredFadeIn index={4} trigger={step} distance={8} style={styles.copyWrap}>
+          <Text style={[styles.footnote, styles.centerText]}>{footnote}</Text>
+        </StaggeredFadeIn>
+      ) : null}
+
+      {isLast ? (
+        <StaggeredFadeIn index={5} trigger={step} distance={8} style={styles.permissionCard}>
+          <Text style={styles.permissionTitle}>Why we ask</Text>
+          <Text style={styles.permissionLine}>Location — detect partner restaurants when you arrive</Text>
+          <Text style={styles.permissionLine}>Notifications — invite you into a session at the table</Text>
+        </StaggeredFadeIn>
+      ) : null}
     </View>
   );
 }
@@ -95,6 +113,7 @@ export default function OnboardingScreen() {
   const insets = useSafeAreaInsets();
   const [step, setStep] = useState(0);
   const [loading, setLoading] = useState(false);
+  const [permissionBlocked, setPermissionBlocked] = useState(false);
   const [stageHeight, setStageHeight] = useState(0);
 
   const contentY = useRef(new Animated.Value(0)).current;
@@ -166,11 +185,23 @@ export default function OnboardingScreen() {
 
   const requestPermissions = async () => {
     setLoading(true);
-    await Location.requestForegroundPermissionsAsync();
+    setPermissionBlocked(false);
+
+    const foreground = await Location.requestForegroundPermissionsAsync();
+    if (foreground.status !== 'granted') {
+      setLoading(false);
+      setPermissionBlocked(true);
+      return;
+    }
+
     await Location.requestBackgroundPermissionsAsync();
     await Notifications.requestPermissionsAsync();
     setLoading(false);
     await completeOnboarding();
+  };
+
+  const openSettings = () => {
+    Linking.openSettings();
   };
 
   const goToStep = (next: number) => {
@@ -259,12 +290,21 @@ export default function OnboardingScreen() {
             },
           ]}
         >
-          <OnboardingSlide key={step} step={step} {...current} />
+          <OnboardingSlide key={step} step={step} isLast={step === STEPS.length - 1} {...current} />
         </Animated.View>
       </View>
 
       <View style={[styles.footer, { paddingBottom: insets.bottom + spacing.md }]}>
-        {step < STEPS.length - 1 ? (
+        {permissionBlocked ? (
+          <View style={styles.blocked}>
+            <Text style={styles.blockedTitle}>Location access needed</Text>
+            <Text style={styles.blockedBody}>
+              Sobremesa uses your location only at partner restaurants — to know when you have arrived and invite you into a session.
+            </Text>
+            <Button label="Open Settings" onPress={openSettings} />
+            <Button label="Try again" variant="ghost" onPress={requestPermissions} loading={loading} />
+          </View>
+        ) : step < STEPS.length - 1 ? (
           <Button label="Continue" onPress={() => goToStep(step + 1)} />
         ) : (
           <Button label="Enter Sobremesa" onPress={requestPermissions} loading={loading} />
@@ -356,6 +396,48 @@ const styles = StyleSheet.create({
   },
   titleGap: {
     marginBottom: spacing.sm,
+  },
+  footnote: {
+    ...text.small,
+    color: colors.textMuted,
+    marginTop: spacing.md,
+    lineHeight: 20,
+  },
+  permissionCard: {
+    width: '100%',
+    marginTop: spacing.lg,
+    backgroundColor: colors.surface,
+    borderRadius: radius.md,
+    borderWidth: 1,
+    borderColor: colors.border,
+    paddingHorizontal: spacing.lg,
+    paddingVertical: spacing.md,
+    gap: spacing.xs,
+  },
+  permissionTitle: {
+    ...text.label,
+    color: colors.primary,
+    marginBottom: spacing.xs,
+  },
+  permissionLine: {
+    ...text.small,
+    lineHeight: 20,
+  },
+  blocked: {
+    gap: spacing.sm,
+    alignItems: 'stretch',
+  },
+  blockedTitle: {
+    ...text.heading,
+    textAlign: 'center',
+    marginBottom: spacing.xs,
+  },
+  blockedBody: {
+    ...text.small,
+    textAlign: 'center',
+    lineHeight: 20,
+    marginBottom: spacing.sm,
+    paddingHorizontal: spacing.sm,
   },
   footer: {
     paddingHorizontal: layout.screenPadding,
