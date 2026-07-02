@@ -174,7 +174,7 @@ function RootNavigator() {
           <Stack.Screen
             name="RestaurantDetail"
             component={RestaurantDetailScreen}
-            options={{ title: 'Partner' }}
+            options={{ headerShown: false }}
           />
           <Stack.Screen
             name="ZonePrompt"
@@ -194,12 +194,12 @@ function RootNavigator() {
           <Stack.Screen
             name="Settings"
             component={SettingsScreen}
-            options={{ title: 'Settings' }}
+            options={{ headerShown: false }}
           />
           <Stack.Screen
             name="Rewards"
             component={RewardsScreen}
-            options={{ title: 'Stamp book' }}
+            options={{ headerShown: false }}
           />
           <Stack.Screen
             name="ConfirmRedeem"

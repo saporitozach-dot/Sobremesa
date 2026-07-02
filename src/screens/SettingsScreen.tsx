@@ -6,19 +6,20 @@ import { useApp } from '../context/AppContext';
 import Button from '../components/Button';
 import Card from '../components/Card';
 import FadeSlideIn from '../components/FadeSlideIn';
+import ScreenHeader from '../components/ScreenHeader';
 import ScreenScroll from '../components/ScreenScroll';
 import SectionLabel from '../components/SectionLabel';
 import TextField from '../components/TextField';
 import { EmergencyContact } from '../types';
 import { text } from '../theme/typography';
-import { colors, fonts, spacing, type } from '../theme';
+import { colors, fonts, spacing } from '../theme';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'Settings'>;
 
 const GOALS = [30, 45, 60, 90] as const;
 
 export default function SettingsScreen({ navigation }: Props) {
-  const { settings, updateSettings, signOut } = useApp();
+  const { settings, updateSettings, signOut, simulateArrival } = useApp();
   const [name, setName] = useState('');
   const [phone, setPhone] = useState('');
 
@@ -40,7 +41,8 @@ export default function SettingsScreen({ navigation }: Props) {
   };
 
   return (
-    <ScreenScroll edges={['top', 'bottom']}>
+    <ScreenScroll edges={['bottom']} contentContainerStyle={styles.scroll}>
+      <ScreenHeader title="Settings" onBackPress={() => navigation.goBack()} />
       <FadeSlideIn trigger="settings">
         <View style={styles.section}>
           <SectionLabel style={styles.firstSection}>Session</SectionLabel>
@@ -61,7 +63,7 @@ export default function SettingsScreen({ navigation }: Props) {
             <View style={[styles.row, styles.rowBorder]}>
               <View style={styles.rowText}>
                 <Text style={styles.label}>Camera shortcut</Text>
-                <Text style={styles.rowHint}>Show a camera button during locked mode.</Text>
+                <Text style={styles.rowHint}>Show a camera option during present mode.</Text>
               </View>
               <Switch
                 value={settings.cameraAllowed}
@@ -92,7 +94,7 @@ export default function SettingsScreen({ navigation }: Props) {
 
         <View style={styles.section}>
           <SectionLabel>Emergency contacts</SectionLabel>
-          <Text style={styles.sectionHint}>Quick-dial from locked mode.</Text>
+          <Text style={styles.sectionHint}>Quick-dial from present mode.</Text>
           <Card padded={false} style={styles.group}>
             {settings.emergencyContacts.length === 0 ? (
               <Text style={styles.emptyContacts}>No contacts yet.</Text>
@@ -120,6 +122,18 @@ export default function SettingsScreen({ navigation }: Props) {
           </View>
         </View>
 
+        {__DEV__ ? (
+          <View style={styles.section}>
+            <SectionLabel>Developer</SectionLabel>
+            <Text style={styles.sectionHint}>Testing tools — not shown in production.</Text>
+            <Button
+              label="Simulate arrival"
+              variant="secondary"
+              onPress={() => simulateArrival('sobremesa-demo')}
+            />
+          </View>
+        ) : null}
+
         <View style={styles.footer}>
           <Button label="Stamp book" variant="ghost" onPress={() => navigation.navigate('Rewards')} />
           <Button label="Sign out" variant="danger" onPress={signOut} />
@@ -130,6 +144,9 @@ export default function SettingsScreen({ navigation }: Props) {
 }
 
 const styles = StyleSheet.create({
+  scroll: {
+    paddingTop: 0,
+  },
   section: {
     marginBottom: spacing.xl,
   },
@@ -161,17 +178,10 @@ const styles = StyleSheet.create({
     gap: spacing.xs,
   },
   label: {
-    color: colors.text,
-    fontSize: type.body,
+    ...text.body,
     fontFamily: fonts.sansSemibold,
-    lineHeight: 22,
   },
-  rowHint: {
-    color: colors.textMuted,
-    fontSize: type.small,
-    fontFamily: fonts.sans,
-    lineHeight: 20,
-  },
+  rowHint: text.small,
   goalRow: {
     flexDirection: 'row',
     flexWrap: 'wrap',
@@ -193,17 +203,10 @@ const styles = StyleSheet.create({
     gap: 2,
   },
   contactName: {
-    color: colors.text,
-    fontSize: type.body,
+    ...text.body,
     fontFamily: fonts.sansSemibold,
-    lineHeight: 22,
   },
-  contactPhone: {
-    color: colors.textMuted,
-    fontSize: type.small,
-    fontFamily: fonts.sans,
-    lineHeight: 20,
-  },
+  contactPhone: text.small,
   subsectionLabel: {
     ...text.label,
     marginTop: spacing.lg,

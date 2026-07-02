@@ -26,6 +26,10 @@ import {
   StampBalance,
   Voucher,
 } from '../types';
+import {
+  dismissSessionNotification,
+  showSessionNotification,
+} from '../services/sessionNotifications';
 import { colors } from '../theme';
 
 const STORAGE_KEY = 'sobremesa.v1';
@@ -141,6 +145,11 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   }, [hydrated, onboarded, settings.monitoringEnabled]);
 
   useEffect(() => {
+    if (!hydrated || !activeSession) return;
+    void showSessionNotification(activeSession.restaurantName, activeSession.goalMinutes);
+  }, [hydrated, activeSession?.id, activeSession?.restaurantName, activeSession?.goalMinutes]);
+
+  useEffect(() => {
     return onZoneEnter((restaurantId) => {
       setActiveZone({ restaurantId, enteredAt: new Date().toISOString() });
       setPendingRestaurantId(restaurantId);
@@ -192,6 +201,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     setOnboarded(false);
     setActiveSession(null);
     setPendingRestaurantId(null);
+    await dismissSessionNotification();
     await persist({ account: null, onboarded: false, activeSession: null });
   }, [persist]);
 
@@ -233,11 +243,13 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     setActiveSession(session);
     setPendingRestaurantId(null);
     await persist({ activeSession: session });
+    await showSessionNotification(restaurant.name, settings.goalMinutes);
   }, [activeZone?.restaurantId, pendingRestaurantId, settings.goalMinutes, persist]);
 
   const endSessionEarly = useCallback(async () => {
     setActiveSession(null);
     await persist({ activeSession: null });
+    await dismissSessionNotification();
   }, [persist]);
 
   const completeSession = useCallback(async (): Promise<SessionCompleteResult | null> => {
@@ -290,6 +302,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       setVouchers(nextVouchers);
       setSessions(nextSessions);
       setActiveSession(null);
+      await dismissSessionNotification();
       await persist({
         sessions: nextSessions,
         stamps: resetStamps,
@@ -302,6 +315,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     setStamps(nextStamps);
     setSessions(nextSessions);
     setActiveSession(null);
+    await dismissSessionNotification();
     await persist({
       sessions: nextSessions,
       stamps: nextStamps,

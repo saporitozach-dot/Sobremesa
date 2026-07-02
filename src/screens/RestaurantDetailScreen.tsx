@@ -7,8 +7,11 @@ import { useApp } from '../context/AppContext';
 import Button from '../components/Button';
 import Card from '../components/Card';
 import FadeSlideIn from '../components/FadeSlideIn';
+import ScreenHeader from '../components/ScreenHeader';
 import ScreenScroll from '../components/ScreenScroll';
-import { colors, fonts, spacing, type } from '../theme';
+import { StampProgressInline } from '../components/StampProgress';
+import { text } from '../theme/typography';
+import { colors, fonts, spacing } from '../theme';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'RestaurantDetail'>;
 
@@ -19,36 +22,40 @@ export default function RestaurantDetailScreen({ navigation, route }: Props) {
   if (!restaurant) {
     return (
       <ScreenScroll edges={['top', 'bottom']}>
-        <Text style={styles.title}>Restaurant not found</Text>
+        <Text style={text.titleBold}>Restaurant not found</Text>
         <Button label="Back" onPress={() => navigation.goBack()} />
       </ScreenScroll>
     );
   }
 
   const stamps = stampCountFor(restaurant.id);
-  const progress = Math.min(stamps / restaurant.stampsRequired, 1);
 
   return (
-    <ScreenScroll edges={['top', 'bottom']}>
+    <ScreenScroll edges={['bottom']} contentContainerStyle={styles.scroll}>
+      <ScreenHeader
+        kicker="Partner"
+        title={restaurant.name}
+        onBackPress={() => navigation.goBack()}
+      />
       <FadeSlideIn trigger={restaurant.id}>
-        <Text style={styles.title}>{restaurant.name}</Text>
-        <Text style={styles.meta}>{restaurant.cuisine}</Text>
-        <Text style={styles.meta}>{restaurant.address}</Text>
+        <Text style={text.small}>{restaurant.cuisine}</Text>
+        <Text style={text.small}>{restaurant.address}</Text>
         {route.params.distanceMiles != null ? (
-          <Text style={styles.distance}>{route.params.distanceMiles.toFixed(1)} mi away</Text>
+          <Text style={[text.small, styles.distance]}>
+            {route.params.distanceMiles.toFixed(1)} mi away
+          </Text>
         ) : null}
 
-        <Text style={styles.body}>{restaurant.description}</Text>
+        <Text style={[text.body, styles.body]}>{restaurant.description}</Text>
 
         <Card style={styles.rewardCard}>
-          <Text style={styles.rewardLabel}>Reward</Text>
-          <Text style={styles.reward}>{restaurant.rewardLabel}</Text>
-          <View style={styles.progressTrack}>
-            <View style={[styles.progressFill, { width: `${progress * 100}%` }]} />
-          </View>
-          <Text style={styles.stamps}>
-            {stamps} / {restaurant.stampsRequired} stamps
-          </Text>
+          <Text style={text.kicker}>Reward</Text>
+          <Text style={text.heading}>{restaurant.rewardLabel}</Text>
+          <StampProgressInline
+            current={stamps}
+            required={restaurant.stampsRequired}
+            style={styles.progress}
+          />
         </Card>
 
         <Button
@@ -62,47 +69,17 @@ export default function RestaurantDetailScreen({ navigation, route }: Props) {
 }
 
 const styles = StyleSheet.create({
-  title: {
-    color: colors.text,
-    fontSize: type.title,
-    fontFamily: fonts.serifBold,
-    letterSpacing: -0.3,
-    marginBottom: spacing.xs,
+  scroll: {
+    paddingTop: 0,
   },
-  meta: { color: colors.textMuted, fontSize: type.small, fontFamily: fonts.sans, lineHeight: 20 },
   distance: {
     color: colors.primary,
-    fontSize: type.small,
-    fontFamily: fonts.sansMedium,
     marginTop: spacing.xs,
+    fontFamily: fonts.sansMedium,
   },
   body: {
-    color: colors.text,
-    fontSize: type.body,
-    fontFamily: fonts.sans,
-    lineHeight: 22,
     marginVertical: spacing.lg,
   },
   rewardCard: { marginBottom: spacing.lg, gap: spacing.xs },
-  rewardLabel: {
-    color: colors.primary,
-    fontSize: type.caption,
-    fontFamily: fonts.sansMedium,
-    letterSpacing: 1,
-    textTransform: 'uppercase',
-  },
-  reward: { color: colors.text, fontSize: type.heading, fontFamily: fonts.sansSemibold },
-  progressTrack: {
-    height: 3,
-    backgroundColor: colors.border,
-    borderRadius: 999,
-    overflow: 'hidden',
-    marginTop: spacing.sm,
-  },
-  progressFill: {
-    height: '100%',
-    backgroundColor: colors.primary,
-    borderRadius: 999,
-  },
-  stamps: { color: colors.textMuted, fontSize: type.small, fontFamily: fonts.sans, marginTop: spacing.xs },
+  progress: { marginTop: spacing.sm },
 });

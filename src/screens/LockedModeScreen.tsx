@@ -1,38 +1,41 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Animated, Linking, StyleSheet, Text, View } from 'react-native';
 import Svg, { Circle } from 'react-native-svg';
-import { LinearGradient } from 'expo-linear-gradient';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { RootStackParamList } from '../../App';
 import { useApp } from '../context/AppContext';
+import ActionSheet from '../components/ActionSheet';
 import Button from '../components/Button';
 import FadeSlideIn from '../components/FadeSlideIn';
 import PressableScale from '../components/PressableScale';
+import Screen from '../components/Screen';
 import { formatMinutes } from '../utils/format';
-import { colors, fonts, layout, radius, spacing, type } from '../theme';
+import { updateSessionNotification } from '../services/sessionNotifications';
+import { text } from '../theme/typography';
+import { colors, radius, spacing } from '../theme';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'Locked'>;
-
-/** TEMP: visible in device builds until TestFlight beta — remove before launch */
-const SHOW_SIMULATE_COMPLETE = true;
 
 export default function LockedModeScreen({ navigation }: Props) {
   const { activeSession, settings, endSessionEarly, completeSession } = useApp();
   const insets = useSafeAreaInsets();
   const goalSeconds = (activeSession?.goalMinutes ?? settings.goalMinutes) * 60;
   const [elapsed, setElapsed] = useState(0);
+  const [sheetOpen, setSheetOpen] = useState(false);
   const [confirmEnd, setConfirmEnd] = useState(false);
   const pulse = useRef(new Animated.Value(1)).current;
 
   const exitSession = useCallback(() => {
     setConfirmEnd(false);
+    setSheetOpen(false);
     void endSessionEarly();
     navigation.reset({ index: 0, routes: [{ name: 'Home' }] });
   }, [endSessionEarly, navigation]);
 
   const simulateComplete = useCallback(async () => {
     setConfirmEnd(false);
+    setSheetOpen(false);
     const result = await completeSession();
     if (result) navigation.replace('SessionComplete', result);
   }, [completeSession, navigation]);
@@ -47,10 +50,16 @@ export default function LockedModeScreen({ navigation }: Props) {
   }, [activeSession]);
 
   useEffect(() => {
+    if (!activeSession) return;
+    if (elapsed % 30 !== 0 && elapsed !== 1) return;
+    void updateSessionNotification(activeSession.restaurantName, elapsed, goalSeconds);
+  }, [activeSession, elapsed, goalSeconds]);
+
+  useEffect(() => {
     const loop = Animated.loop(
       Animated.sequence([
-        Animated.timing(pulse, { toValue: 1.03, duration: 1200, useNativeDriver: true }),
-        Animated.timing(pulse, { toValue: 1, duration: 1200, useNativeDriver: true }),
+        Animated.timing(pulse, { toValue: 1.02, duration: 1600, useNativeDriver: true }),
+        Animated.timing(pulse, { toValue: 1, duration: 1600, useNativeDriver: true }),
       ]),
     );
     loop.start();
@@ -66,8 +75,8 @@ export default function LockedModeScreen({ navigation }: Props) {
   }, [elapsed, goalSeconds, activeSession, completeSession, navigation]);
 
   const progress = useMemo(() => Math.min(elapsed / goalSeconds, 1), [elapsed, goalSeconds]);
-  const ringSize = 200;
-  const stroke = 6;
+  const ringSize = 220;
+  const stroke = 5;
   const ringRadius = (ringSize - stroke) / 2;
   const circumference = 2 * Math.PI * ringRadius;
 
@@ -75,25 +84,39 @@ export default function LockedModeScreen({ navigation }: Props) {
     Linking.openURL(`tel:${phone.replace(/\D/g, '')}`);
   };
 
+  const closeSheet = () => {
+    setSheetOpen(false);
+    setConfirmEnd(false);
+  };
+
   if (!activeSession) {
     return (
-      <LinearGradient colors={[colors.bg, colors.bgDeep]} style={styles.empty}>
-        <Text style={styles.title}>No active session</Text>
-        <Button label="Home" onPress={() => navigation.reset({ index: 0, routes: [{ name: 'Home' }] })} />
-      </LinearGradient>
+      <Screen layout="centered">
+        <Text style={text.titleBold}>No active session</Text>
+        <Button
+          label="Home"
+          onPress={() => navigation.reset({ index: 0, routes: [{ name: 'Home' }] })}
+        />
+      </Screen>
     );
   }
 
   return (
-    <LinearGradient
-      colors={[colors.bg, colors.bgDeep]}
-      style={[styles.container, { paddingTop: insets.top + spacing.lg, paddingBottom: insets.bottom + spacing.md }]}
+    <Screen
+      gradient
+      style={{ paddingTop: insets.top + spacing.xl }}
+      contentStyle={styles.content}
+      footer={
+        <Button label="Need something?" variant="ghost" onPress={() => setSheetOpen(true)} />
+      }
     >
-      <FadeSlideIn trigger="locked" style={styles.content}>
-        <Text style={styles.kicker}>Locked mode</Text>
-        <Text style={styles.title}>Phone down</Text>
-        <Text style={styles.subtitle}>{activeSession.restaurantName}</Text>
-        <Text style={styles.sessionNote}>Your session is active — stay in Sobremesa until you finish.</Text>
+      <FadeSlideIn trigger="locked" style={styles.center}>
+        <Text style={text.kicker}>Present mode</Text>
+        <Text style={text.titleBold}>Sobremesa session</Text>
+        <Text style={[text.small, styles.restaurant]}>{activeSession.restaurantName}</Text>
+        <Text style={[text.small, styles.hint]}>
+          Keep Sobremesa open — your phone stays usable for emergencies.
+        </Text>
 
         <Animated.View style={[styles.ringWrap, { transform: [{ scale: pulse }] }]}>
           <Svg width={ringSize} height={ringSize}>
@@ -121,139 +144,112 @@ export default function LockedModeScreen({ navigation }: Props) {
           </Svg>
           <View style={styles.ringCenter}>
             <Text style={styles.timer}>{formatMinutes(elapsed)}</Text>
-            <Text style={styles.goal}>of {formatMinutes(goalSeconds)}</Text>
+            <Text style={text.small}>of {formatMinutes(goalSeconds)}</Text>
           </View>
         </Animated.View>
-
-        {settings.emergencyContacts.length > 0 ? (
-          <View style={styles.contacts}>
-            {settings.emergencyContacts.map((c) => (
-              <PressableScale
-                key={c.id}
-                style={styles.contactBtn}
-                onPress={() => callEmergency(c.phone)}
-              >
-                <Text style={styles.contactLabel}>{c.name}</Text>
-                <Text style={styles.contactPhone}>{c.phone}</Text>
-              </PressableScale>
-            ))}
-          </View>
-        ) : null}
       </FadeSlideIn>
 
-      <View style={styles.actions}>
+      <ActionSheet visible={sheetOpen} title="Need something?" onClose={closeSheet}>
+        {settings.emergencyContacts.map((c) => (
+          <PressableScale
+            key={c.id}
+            style={styles.sheetRow}
+            onPress={() => {
+              closeSheet();
+              callEmergency(c.phone);
+            }}
+          >
+            <Text style={text.heading}>{c.name}</Text>
+            <Text style={text.small}>{c.phone}</Text>
+          </PressableScale>
+        ))}
+
         {settings.cameraAllowed ? (
-          <Button label="Open camera" variant="secondary" onPress={() => Linking.openURL('photos-redirect://')} />
+          <Button
+            label="Open camera"
+            variant="secondary"
+            onPress={() => {
+              closeSheet();
+              Linking.openURL('photos-redirect://');
+            }}
+          />
         ) : null}
-        {SHOW_SIMULATE_COMPLETE && !confirmEnd ? (
+
+        <Button
+          label="Stamp book"
+          variant="secondary"
+          onPress={() => {
+            closeSheet();
+            navigation.navigate('Rewards', { returnTo: 'Locked' });
+          }}
+        />
+
+        {__DEV__ ? (
           <Button label="Simulate complete" variant="secondary" onPress={simulateComplete} />
         ) : null}
+
         {confirmEnd ? (
           <View style={styles.confirm}>
-            <Text style={styles.confirmText}>End session? You will not earn a stamp.</Text>
+            <Text style={[text.small, styles.confirmText]}>
+              End session? You will not earn a stamp.
+            </Text>
             <Button label="End session" variant="danger" onPress={exitSession} />
             <Button label="Keep going" variant="ghost" onPress={() => setConfirmEnd(false)} />
           </View>
         ) : (
           <Button label="End early" variant="ghost" onPress={() => setConfirmEnd(true)} />
         )}
-      </View>
-    </LinearGradient>
+      </ActionSheet>
+    </Screen>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    paddingHorizontal: layout.screenPadding,
-  },
-  empty: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-    padding: layout.screenPadding,
-    gap: spacing.md,
-  },
   content: {
     flex: 1,
-    alignItems: 'center',
     justifyContent: 'center',
-    maxWidth: layout.maxContentWidth,
-    alignSelf: 'center',
-    width: '100%',
   },
-  kicker: {
-    color: colors.primary,
-    fontSize: type.caption,
-    fontFamily: fonts.sansMedium,
-    letterSpacing: 1.5,
-    textTransform: 'uppercase',
-    marginBottom: spacing.xs,
+  center: {
+    alignItems: 'center',
+    flex: 1,
+    justifyContent: 'center',
   },
-  title: {
-    color: colors.text,
-    fontSize: type.title,
-    fontFamily: fonts.serifBold,
-    textAlign: 'center',
-    letterSpacing: -0.3,
-  },
-  subtitle: {
-    color: colors.textMuted,
-    fontSize: type.small,
-    fontFamily: fonts.sans,
+  restaurant: {
     marginTop: spacing.xs,
     textAlign: 'center',
-    marginBottom: spacing.xs,
   },
-  sessionNote: {
-    color: colors.primary,
-    fontSize: type.caption,
-    fontFamily: fonts.sansMedium,
+  hint: {
     textAlign: 'center',
-    letterSpacing: 0.3,
-    marginBottom: spacing.lg,
+    marginTop: spacing.sm,
+    marginBottom: spacing.xl,
     maxWidth: 280,
-    lineHeight: 18,
+    lineHeight: 20,
   },
   ringWrap: {
     alignItems: 'center',
     justifyContent: 'center',
-    marginBottom: spacing.lg,
+    marginTop: spacing.md,
   },
   ringCenter: { position: 'absolute', alignItems: 'center' },
   timer: {
-    color: colors.text,
-    fontSize: 36,
-    fontFamily: fonts.serifBold,
-    letterSpacing: -1,
+    ...text.display,
+    fontSize: 40,
+    lineHeight: 44,
   },
-  goal: { color: colors.textMuted, fontSize: type.caption, fontFamily: fonts.sans, marginTop: 2 },
-  contacts: { width: '100%', gap: spacing.sm },
-  contactBtn: {
-    backgroundColor: colors.surface,
+  sheetRow: {
+    backgroundColor: colors.surfaceAlt,
     borderRadius: radius.md,
     padding: spacing.md,
     borderWidth: 1,
     borderColor: colors.border,
     alignItems: 'center',
-  },
-  contactLabel: { color: colors.text, fontFamily: fonts.sansSemibold, fontSize: type.body },
-  contactPhone: { color: colors.textMuted, fontSize: type.small, fontFamily: fonts.sans, marginTop: 2 },
-  actions: {
-    width: '100%',
-    maxWidth: layout.maxContentWidth,
-    alignSelf: 'center',
-    gap: 0,
+    gap: 2,
   },
   confirm: {
-    width: '100%',
     gap: spacing.xs,
     paddingTop: spacing.sm,
   },
   confirmText: {
-    color: colors.textMuted,
-    fontSize: type.small,
-    fontFamily: fonts.sans,
     textAlign: 'center',
     marginBottom: spacing.sm,
     paddingHorizontal: spacing.md,

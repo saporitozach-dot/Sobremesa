@@ -1,22 +1,44 @@
-import React, { useEffect } from 'react';
-import { FlatList, StyleSheet, Text, View } from 'react-native';
+import React, { useEffect, useMemo } from 'react';
+import { StyleSheet, Text, View } from 'react-native';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
-import { LinearGradient } from 'expo-linear-gradient';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { RootStackParamList } from '../../App';
 import { PARTNER_RESTAURANTS } from '../data/restaurants';
 import { useApp } from '../context/AppContext';
+import ActiveSessionBanner from '../components/ActiveSessionBanner';
 import Button from '../components/Button';
 import FadeSlideIn from '../components/FadeSlideIn';
-import PressableScale from '../components/PressableScale';
-import { ChevronRight, SettingsIcon } from '../components/icons/FeatureIcon';
-import { colors, fonts, layout, radius, spacing, type } from '../theme';
+import RestaurantCard from '../components/RestaurantCard';
+import ScreenHeader from '../components/ScreenHeader';
+import ScreenList from '../components/ScreenList';
+import { FeatureIcon } from '../components/icons/FeatureIcon';
+import { text } from '../theme/typography';
+import { colors, radius, spacing } from '../theme';
+import { Restaurant } from '../types';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'Home'>;
 
+function sortRestaurants(restaurants: Restaurant[], arrivedId: string | null): Restaurant[] {
+  if (!arrivedId) return restaurants;
+  const arrived = restaurants.find((r) => r.id === arrivedId);
+  if (!arrived) return restaurants;
+  return [arrived, ...restaurants.filter((r) => r.id !== arrivedId)];
+}
+
 export default function HomeScreen({ navigation }: Props) {
-  const { account, pendingRestaurantId, simulateArrival, stampCountFor } = useApp();
-  const insets = useSafeAreaInsets();
+  const {
+    account,
+    settings,
+    activeZone,
+    activeSession,
+    pendingRestaurantId,
+    stampCountFor,
+  } = useApp();
+
+  const arrivedRestaurantId = activeZone?.restaurantId ?? pendingRestaurantId ?? null;
+  const restaurants = useMemo(
+    () => sortRestaurants(PARTNER_RESTAURANTS, arrivedRestaurantId),
+    [arrivedRestaurantId],
+  );
 
   useEffect(() => {
     if (pendingRestaurantId) {
@@ -24,232 +46,114 @@ export default function HomeScreen({ navigation }: Props) {
     }
   }, [pendingRestaurantId, navigation]);
 
+  const listHeader = (
+    <View style={styles.listHeader}>
+      {activeSession ? (
+        <FadeSlideIn trigger="active-banner">
+          <ActiveSessionBanner
+            session={activeSession}
+            onPress={() => navigation.navigate('Locked')}
+          />
+        </FadeSlideIn>
+      ) : null}
+
+      {!activeSession && arrivedRestaurantId ? (
+        <FadeSlideIn trigger={`arrived-${arrivedRestaurantId}`}>
+          <View style={styles.arrivalHint}>
+            <FeatureIcon name="dining" size={28} />
+            <Text style={text.bodyMuted}>
+              You're at a partner restaurant. Tap the highlighted card to start your session.
+            </Text>
+          </View>
+        </FadeSlideIn>
+      ) : null}
+
+      {!activeSession && !arrivedRestaurantId ? (
+        <FadeSlideIn trigger="empty-state">
+          <View style={styles.emptyState}>
+            <FeatureIcon name="dining" size={32} />
+            <Text style={text.heading}>
+              {settings.monitoringEnabled ? 'Waiting for arrival' : 'Monitoring is off'}
+            </Text>
+            <Text style={text.bodyMuted}>
+              {settings.monitoringEnabled
+                ? "We'll notify you when you arrive at a partner restaurant."
+                : 'Turn on background monitoring in Settings to detect partner restaurants.'}
+            </Text>
+            {!settings.monitoringEnabled ? (
+              <Button
+                label="Open settings"
+                variant="secondary"
+                onPress={() => navigation.navigate('Settings')}
+                style={styles.emptyBtn}
+              />
+            ) : null}
+          </View>
+        </FadeSlideIn>
+      ) : null}
+    </View>
+  );
+
   return (
-    <LinearGradient colors={[colors.bg, colors.bgDeep]} style={styles.container}>
-      <View style={[styles.header, { paddingTop: insets.top + spacing.md }]}>
-        <View style={styles.headerText}>
-          <Text style={styles.greeting}>Hola, {account?.firstName ?? 'friend'}</Text>
-          <Text style={styles.title}>Partners nearby</Text>
-        </View>
-        <PressableScale
-          onPress={() => navigation.navigate('Settings')}
-          style={styles.iconBtn}
-          accessibilityLabel="Settings"
-        >
-          <SettingsIcon size={20} color={colors.primary} />
-        </PressableScale>
-      </View>
-
-      <FlatList
-        data={PARTNER_RESTAURANTS}
-        keyExtractor={(item) => item.id}
-        contentContainerStyle={[styles.list, { paddingBottom: insets.bottom + 130 }]}
-        showsVerticalScrollIndicator={false}
-        renderItem={({ item, index }) => {
-          const stamps = stampCountFor(item.id);
-          const progress = Math.min(stamps / item.stampsRequired, 1);
-
-          return (
-            <FadeSlideIn delay={index * 60} distance={10} trigger={`card-${item.id}`}>
-              <PressableScale
-                style={styles.card}
-                onPress={() => navigation.navigate('RestaurantDetail', { restaurantId: item.id })}
-              >
-                <View style={styles.cardTop}>
-                  <View style={styles.cardInfo}>
-                    <Text style={styles.cardTitle}>{item.name}</Text>
-                    <Text style={styles.cardMeta}>{item.cuisine}</Text>
-                  </View>
-                  <View style={styles.stampBadge}>
-                    <Text style={styles.stampBadgeText}>
-                      {stamps}/{item.stampsRequired}
-                    </Text>
-                  </View>
-                </View>
-
-                <Text style={styles.cardAddress} numberOfLines={1}>
-                  {item.address}
-                </Text>
-
-                <View style={styles.progressTrack}>
-                  <View style={[styles.progressFill, { width: `${progress * 100}%` }]} />
-                </View>
-
-                <View style={styles.cardFooter}>
-                  <Text style={styles.cardReward} numberOfLines={1}>
-                    {item.rewardLabel}
-                  </Text>
-                  <View style={styles.cardCta}>
-                    <Text style={styles.cardCtaText}>View</Text>
-                    <ChevronRight size={12} color={colors.primary} />
-                  </View>
-                </View>
-              </PressableScale>
-            </FadeSlideIn>
-          );
-        }}
-      />
-
-      <View style={[styles.footer, { paddingBottom: insets.bottom + spacing.sm }]}>
-        <View style={styles.footerInner}>
-          <Button
-            label="Simulate arrival"
-            variant="secondary"
-            onPress={() => simulateArrival('sobremesa-demo')}
-            style={styles.footerBtn}
+    <ScreenList
+      header={
+        <ScreenHeader
+          kicker={`Hola, ${account?.firstName ?? 'friend'}`}
+          title="Partners nearby"
+          onSettingsPress={() => navigation.navigate('Settings')}
+        />
+      }
+      data={restaurants}
+      keyExtractor={(item) => item.id}
+      ListHeaderComponent={listHeader}
+      renderItem={({ item, index }) => (
+        <FadeSlideIn delay={index * 60} distance={10} trigger={`card-${item.id}`}>
+          <RestaurantCard
+            restaurant={item}
+            stampCount={stampCountFor(item.id)}
+            variant={item.id === arrivedRestaurantId && !activeSession ? 'arrived' : 'default'}
+            onPress={() => {
+              if (item.id === arrivedRestaurantId && !activeSession) {
+                navigation.navigate('ZonePrompt');
+              } else {
+                navigation.navigate('RestaurantDetail', { restaurantId: item.id });
+              }
+            }}
           />
-          <Button
-            label="Stamp book"
-            variant="ghost"
-            onPress={() => navigation.navigate('Rewards')}
-            style={styles.footerBtnGhost}
-          />
-        </View>
-      </View>
-    </LinearGradient>
+        </FadeSlideIn>
+      )}
+    />
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1 },
-  header: {
-    paddingHorizontal: layout.screenPadding,
-    paddingBottom: spacing.md,
+  listHeader: {
+    marginBottom: spacing.sm,
+  },
+  arrivalHint: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
     alignItems: 'center',
-    maxWidth: layout.maxContentWidth + layout.screenPadding * 2,
-    alignSelf: 'center',
-    width: '100%',
-  },
-  headerText: { flex: 1 },
-  greeting: {
-    color: colors.primary,
-    fontSize: type.caption,
-    fontFamily: fonts.sansMedium,
-    letterSpacing: 0.8,
-    textTransform: 'uppercase',
-    marginBottom: 2,
-  },
-  title: {
-    color: colors.text,
-    fontSize: type.title,
-    fontFamily: fonts.serifBold,
-    letterSpacing: -0.3,
-  },
-  iconBtn: {
-    width: 40,
-    height: 40,
-    borderRadius: radius.pill,
-    backgroundColor: colors.surface,
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderWidth: 1,
-    borderColor: colors.border,
-  },
-  list: {
-    paddingHorizontal: layout.screenPadding,
-    maxWidth: layout.maxContentWidth + layout.screenPadding * 2,
-    alignSelf: 'center',
-    width: '100%',
-  },
-  card: {
+    gap: spacing.md,
     backgroundColor: colors.surface,
     borderRadius: radius.lg,
-    padding: spacing.lg,
     borderWidth: 1,
     borderColor: colors.border,
+    padding: spacing.md,
     marginBottom: spacing.md,
   },
-  cardTop: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'flex-start',
-    marginBottom: spacing.xs,
-  },
-  cardInfo: { flex: 1, marginRight: spacing.md },
-  cardTitle: {
-    color: colors.text,
-    fontSize: type.heading,
-    fontFamily: fonts.sansSemibold,
-    letterSpacing: -0.2,
-  },
-  cardMeta: {
-    color: colors.textMuted,
-    fontSize: type.small,
-    fontFamily: fonts.sans,
-    marginTop: 2,
-  },
-  stampBadge: {
-    backgroundColor: colors.primaryMuted,
-    borderRadius: radius.pill,
-    paddingHorizontal: spacing.sm,
-    paddingVertical: 3,
-    borderWidth: 1,
-    borderColor: colors.primary,
-  },
-  stampBadgeText: {
-    color: colors.primary,
-    fontSize: type.caption,
-    fontFamily: fonts.sansSemibold,
-  },
-  cardAddress: {
-    color: colors.textMuted,
-    fontSize: type.small,
-    fontFamily: fonts.sans,
-    marginBottom: spacing.sm,
-  },
-  progressTrack: {
-    height: 3,
-    backgroundColor: colors.border,
-    borderRadius: radius.pill,
-    overflow: 'hidden',
-    marginBottom: spacing.sm,
-  },
-  progressFill: {
-    height: '100%',
-    backgroundColor: colors.primary,
-    borderRadius: radius.pill,
-  },
-  cardFooter: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
+  emptyState: {
     alignItems: 'center',
+    backgroundColor: colors.surface,
+    borderRadius: radius.lg,
+    borderWidth: 1,
+    borderColor: colors.border,
+    padding: spacing.xl,
+    marginBottom: spacing.md,
     gap: spacing.sm,
   },
-  cardReward: {
-    color: colors.textMuted,
-    fontSize: type.small,
-    fontFamily: fonts.sans,
-    flex: 1,
+  emptyBtn: {
+    marginTop: spacing.sm,
+    minHeight: 44,
+    alignSelf: 'stretch',
   },
-  cardCta: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 2,
-  },
-  cardCtaText: {
-    color: colors.primary,
-    fontSize: type.caption,
-    fontFamily: fonts.sansSemibold,
-  },
-  footer: {
-    position: 'absolute',
-    left: 0,
-    right: 0,
-    bottom: 0,
-    paddingHorizontal: layout.screenPadding,
-    paddingTop: spacing.sm,
-    backgroundColor: colors.bg,
-    borderTopWidth: StyleSheet.hairlineWidth,
-    borderTopColor: colors.borderLight,
-    alignItems: 'center',
-  },
-  footerInner: {
-    width: '100%',
-    maxWidth: layout.maxContentWidth,
-    gap: 0,
-  },
-  footerBtn: { minHeight: 46 },
-  footerBtnGhost: { minHeight: 40 },
 });
