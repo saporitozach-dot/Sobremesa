@@ -50,6 +50,7 @@ export default function SignUpScreen({ navigation }: Props) {
       <FadeSlideIn trigger="signup">
         <FormHeader title="Create account" subtitle="Start earning at partner restaurants." />
         <TextField
+          fieldIndex={0}
           label="First name"
           value={firstName}
           onChangeText={setFirstName}
@@ -58,8 +59,9 @@ export default function SignUpScreen({ navigation }: Props) {
           textContentType="givenName"
           returnKeyType="next"
         />
-        <EmailInput label="Email" value={email} onChangeText={setEmail} />
+        <EmailInput fieldIndex={1} label="Email" value={email} onChangeText={setEmail} />
         <TextField
+          fieldIndex={2}
           label="Phone"
           keyboardType="phone-pad"
           value={phone}
@@ -69,6 +71,7 @@ export default function SignUpScreen({ navigation }: Props) {
           returnKeyType="next"
         />
         <TextField
+          fieldIndex={3}
           label="Password"
           secureTextEntry
           value={password}

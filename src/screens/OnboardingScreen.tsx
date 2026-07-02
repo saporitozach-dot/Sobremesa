@@ -19,13 +19,13 @@ import StaggeredFadeIn from '../components/StaggeredFadeIn';
 import StepIndicator from '../components/StepIndicator';
 import { FeatureIcon, FeatureIconName } from '../components/icons/FeatureIcon';
 import { text } from '../theme/typography';
-import { colors, layout, motion, radius, spacing } from '../theme';
+import { colors, fonts, layout, motion, radius, spacing } from '../theme';
 
 const EASE_IN = Easing.bezier(0.4, 0, 1, 1);
 const EASE_OUT = Easing.bezier(0.22, 1, 0.36, 1);
 
-/** Vertical anchor for each slide — top, center, bottom of the stage */
-const ANCHOR_FRACTIONS = [0.04, 0.36, 0.58] as const;
+/** Vertical anchor — slide 3 sits low, inside the ambient glow above the footer */
+const ANCHOR_FRACTIONS = [0.04, 0.34, 0.5] as const;
 
 type StepConfig = {
   kicker: string;
@@ -39,32 +39,71 @@ type StepConfig = {
 const STEPS: StepConfig[] = [
   {
     kicker: 'Welcome in',
-    title: 'Leave the scroll behind',
-    body: 'Phone-free dining at partner tables.',
-    footnote: 'Sobremesa keeps your session active — put the phone down and stay present.',
+    title: 'Be here, together',
+    body: 'Sobremesa helps you put the phone away and connect with the people at your table.',
     icon: 'dining',
     showBrand: true,
   },
   {
-    kicker: 'The table',
-    title: 'Earn your stamps',
-    body: 'Stay present. Collect rewards.',
+    kicker: 'The idea',
+    title: 'Phone-free meals',
+    body: 'Stay present through the meal — conversation, not scrolling.',
     icon: 'reward',
     showBrand: false,
   },
   {
-    kicker: 'You are in',
-    title: 'We find you at the table',
-    body: 'Location lets us know when you arrive. Notifications invite you into a session.',
-    footnote: 'We only check at partner restaurants — not while you are elsewhere.',
+    kicker: 'How it works',
+    title: 'We meet you at the table',
+    body: '',
     icon: 'setup',
     showBrand: false,
   },
 ];
 
-type SlideProps = StepConfig & { step: number; isLast: boolean };
+const FLOW_STEPS = [
+  'Arrive at a partner restaurant',
+  'Start a phone-free session',
+  'Earn stamps toward rewards',
+];
+
+type SlideProps = StepConfig & { step: number; isLast?: boolean };
 
 function OnboardingSlide({ kicker, title, body, footnote, icon, showBrand, step, isLast }: SlideProps) {
+  if (isLast) {
+    return (
+      <View style={styles.slide}>
+        <View style={styles.glowCluster}>
+          <View style={styles.glowRing} pointerEvents="none" />
+
+          <StaggeredFadeIn index={0} trigger={step} distance={8}>
+            <Text style={text.kicker}>{kicker}</Text>
+          </StaggeredFadeIn>
+
+          <StaggeredFadeIn index={1} trigger={step} scale style={styles.iconWrapTight}>
+            <View style={styles.iconCircle}>
+              <FeatureIcon name={icon} size={32} />
+            </View>
+          </StaggeredFadeIn>
+
+          <StaggeredFadeIn index={2} trigger={step} style={styles.copyWrap}>
+            <Text style={[text.titleBold, styles.centerText, styles.titleGapTight]}>{title}</Text>
+          </StaggeredFadeIn>
+
+          <StaggeredFadeIn index={3} trigger={step} distance={8} style={styles.flowWrap}>
+            {FLOW_STEPS.map((line, i) => (
+              <View key={line} style={styles.flowRow}>
+                <View style={styles.flowDot}>
+                  <Text style={styles.flowNum}>{i + 1}</Text>
+                </View>
+                <Text style={styles.flowText}>{line}</Text>
+              </View>
+            ))}
+          </StaggeredFadeIn>
+        </View>
+      </View>
+    );
+  }
+
   return (
     <View style={styles.slide}>
       <StaggeredFadeIn index={0} trigger={step} distance={8}>
@@ -96,14 +135,6 @@ function OnboardingSlide({ kicker, title, body, footnote, icon, showBrand, step,
           <Text style={[styles.footnote, styles.centerText]}>{footnote}</Text>
         </StaggeredFadeIn>
       ) : null}
-
-      {isLast ? (
-        <StaggeredFadeIn index={5} trigger={step} distance={8} style={styles.permissionCard}>
-          <Text style={styles.permissionTitle}>Why we ask</Text>
-          <Text style={styles.permissionLine}>Location — detect partner restaurants when you arrive</Text>
-          <Text style={styles.permissionLine}>Notifications — invite you into a session at the table</Text>
-        </StaggeredFadeIn>
-      ) : null}
     </View>
   );
 }
@@ -130,8 +161,11 @@ export default function OnboardingScreen() {
   const moveToAnchor = (nextStep: number, animateContent = true) => {
     if (stageHeight <= 0) return;
 
-    const targetY = stageHeight * ANCHOR_FRACTIONS[nextStep] + insets.top * 0.15;
-    const glowTarget = stageHeight * (0.1 + nextStep * 0.28);
+    const targetY = stageHeight * ANCHOR_FRACTIONS[nextStep] + insets.top * 0.12;
+    const glowTarget =
+      nextStep === STEPS.length - 1
+        ? stageHeight * 0.48
+        : stageHeight * (0.1 + nextStep * 0.28);
 
     const moves = [
       Animated.spring(contentY, {
@@ -323,13 +357,13 @@ const styles = StyleSheet.create({
     position: 'absolute',
     top: -80,
     backgroundColor: colors.primary,
-    opacity: 0.07,
+    opacity: 0.09,
   },
   journeyTrack: {
     position: 'absolute',
     left: layout.screenPadding,
     width: 2,
-    bottom: 160,
+    bottom: 210,
   },
   journeyLine: {
     position: 'absolute',
@@ -397,30 +431,67 @@ const styles = StyleSheet.create({
   titleGap: {
     marginBottom: spacing.sm,
   },
+  titleGapTight: {
+    marginBottom: spacing.md,
+  },
+  glowCluster: {
+    width: '100%',
+    alignItems: 'center',
+    paddingHorizontal: spacing.lg,
+    paddingTop: spacing.xl,
+    paddingBottom: spacing.lg,
+  },
+  glowRing: {
+    position: 'absolute',
+    top: 0,
+    width: 300,
+    height: 300,
+    borderRadius: 150,
+    backgroundColor: 'rgba(212, 175, 90, 0.1)',
+    borderWidth: 1,
+    borderColor: 'rgba(212, 175, 90, 0.22)',
+  },
+  iconWrapTight: {
+    alignItems: 'center',
+    marginBottom: spacing.md,
+  },
+  flowWrap: {
+    width: '100%',
+    gap: spacing.sm,
+    paddingTop: spacing.xs,
+  },
+  flowRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.md,
+    width: '100%',
+    maxWidth: 280,
+  },
+  flowDot: {
+    width: 26,
+    height: 26,
+    borderRadius: 13,
+    backgroundColor: colors.primaryMuted,
+    borderWidth: 1,
+    borderColor: colors.primary,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  flowNum: {
+    color: colors.primary,
+    fontSize: 12,
+    fontFamily: fonts.sansSemibold,
+  },
+  flowText: {
+    ...text.small,
+    color: colors.text,
+    flex: 1,
+    lineHeight: 20,
+  },
   footnote: {
     ...text.small,
     color: colors.textMuted,
     marginTop: spacing.md,
-    lineHeight: 20,
-  },
-  permissionCard: {
-    width: '100%',
-    marginTop: spacing.lg,
-    backgroundColor: colors.surface,
-    borderRadius: radius.md,
-    borderWidth: 1,
-    borderColor: colors.border,
-    paddingHorizontal: spacing.lg,
-    paddingVertical: spacing.md,
-    gap: spacing.xs,
-  },
-  permissionTitle: {
-    ...text.label,
-    color: colors.primary,
-    marginBottom: spacing.xs,
-  },
-  permissionLine: {
-    ...text.small,
     lineHeight: 20,
   },
   blocked: {

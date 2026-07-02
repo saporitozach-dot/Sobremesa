@@ -49,8 +49,9 @@ export default function LoginScreen({ navigation, route }: Props) {
     >
       <FadeSlideIn trigger="login">
         <FormHeader title="Welcome back" subtitle="Pick up where you left off." />
-        <EmailInput label="Email" value={email} onChangeText={setEmail} />
+        <EmailInput fieldIndex={0} label="Email" value={email} onChangeText={setEmail} />
         <TextField
+          fieldIndex={1}
           label="Password"
           secureTextEntry
           value={password}

@@ -15,7 +15,7 @@
     },
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.sobremesa.app",
+      "bundleIdentifier": "com.saporitozach.sobremesa",
       "infoPlist": {
         "NSLocationWhenInUseUsageDescription": "Sobremesa uses your location to know when you've arrived at a partner restaurant so it can start a phone-free dining session.",
         "NSLocationAlwaysAndWhenInUseUsageDescription": "Sobremesa monitors restaurant zones in the background so it can invite you into a phone-free session the moment you sit down.",
@@ -26,7 +26,7 @@
       }
     },
     "android": {
-      "package": "com.sobremesa.app",
+      "package": "com.saporitozach.sobremesa",
       "softwareKeyboardLayoutMode": "resize",
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",

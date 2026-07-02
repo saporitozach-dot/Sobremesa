@@ -14,6 +14,9 @@ import { colors, fonts, layout, radius, spacing, type } from '../theme';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'Locked'>;
 
+/** TEMP: visible in device builds until TestFlight beta — remove before launch */
+const SHOW_SIMULATE_COMPLETE = true;
+
 export default function LockedModeScreen({ navigation }: Props) {
   const { activeSession, settings, endSessionEarly, completeSession } = useApp();
   const insets = useSafeAreaInsets();
@@ -142,7 +145,7 @@ export default function LockedModeScreen({ navigation }: Props) {
         {settings.cameraAllowed ? (
           <Button label="Open camera" variant="secondary" onPress={() => Linking.openURL('photos-redirect://')} />
         ) : null}
-        {__DEV__ && !confirmEnd ? (
+        {SHOW_SIMULATE_COMPLETE && !confirmEnd ? (
           <Button label="Simulate complete" variant="secondary" onPress={simulateComplete} />
         ) : null}
         {confirmEnd ? (

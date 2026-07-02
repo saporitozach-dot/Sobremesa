@@ -1,8 +1,6 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
-  Animated,
   Keyboard,
-  KeyboardAvoidingView,
   Platform,
   Pressable,
   ScrollView,
@@ -10,117 +8,85 @@ import {
   Text,
   View,
 } from 'react-native';
-import { useHeaderHeight } from '@react-navigation/elements';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
-import { colors, fonts, layout, spacing } from '../theme';
+import { FormFocusProvider, useFormFocus } from '../context/FormFocusContext';
+import { ChevronRight } from './icons/FeatureIcon';
+import { colors, fonts, layout, radius, spacing } from '../theme';
 
 type Props = {
   children: React.ReactNode;
   footer?: React.ReactNode;
-  /** Override nav header offset when not inside a stack screen */
-  keyboardOffset?: number;
 };
 
-export default function KeyboardFormScreen({ children, footer, keyboardOffset }: Props) {
+function KeyboardFormScreenInner({ children, footer }: Props) {
   const insets = useSafeAreaInsets();
-  const headerHeight = useHeaderHeight();
-  const isWeb = Platform.OS === 'web';
-  const scrollRef = useRef<ScrollView>(null);
-  const keyboardHeight = useRef(new Animated.Value(0)).current;
+  const focus = useFormFocus();
   const [keyboardOpen, setKeyboardOpen] = useState(false);
 
-  const verticalOffset = keyboardOffset ?? headerHeight;
-
   useEffect(() => {
-    if (isWeb) return;
+    if (Platform.OS === 'web') return;
 
-    const showEvent = Platform.OS === 'ios' ? 'keyboardWillShow' : 'keyboardDidShow';
-    const hideEvent = Platform.OS === 'ios' ? 'keyboardWillHide' : 'keyboardDidHide';
-
-    const onShow = (event: { endCoordinates: { height: number }; duration?: number }) => {
-      setKeyboardOpen(true);
-      Animated.timing(keyboardHeight, {
-        toValue: event.endCoordinates.height,
-        duration: event.duration ?? 250,
-        useNativeDriver: false,
-      }).start();
-      requestAnimationFrame(() => {
-        scrollRef.current?.scrollToEnd({ animated: true });
-      });
-    };
-
-    const onHide = (event: { duration?: number }) => {
-      setKeyboardOpen(false);
-      Animated.timing(keyboardHeight, {
-        toValue: 0,
-        duration: event.duration ?? 200,
-        useNativeDriver: false,
-      }).start();
-    };
-
-    const showSub = Keyboard.addListener(showEvent, onShow);
-    const hideSub = Keyboard.addListener(hideEvent, onHide);
+    const showSub = Keyboard.addListener(
+      Platform.OS === 'ios' ? 'keyboardWillShow' : 'keyboardDidShow',
+      () => setKeyboardOpen(true),
+    );
+    const hideSub = Keyboard.addListener(
+      Platform.OS === 'ios' ? 'keyboardWillHide' : 'keyboardDidHide',
+      () => setKeyboardOpen(false),
+    );
 
     return () => {
       showSub.remove();
       hideSub.remove();
     };
-  }, [isWeb, keyboardHeight]);
+  }, []);
+
+  const showNext = keyboardOpen && focus?.hasNext;
 
   return (
     <LinearGradient colors={[colors.bg, colors.bgDeep]} style={styles.flex}>
-      <KeyboardAvoidingView
+      <ScrollView
         style={styles.flex}
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        enabled={!isWeb}
-        keyboardVerticalOffset={verticalOffset}
+        contentContainerStyle={[
+          styles.scroll,
+          { paddingBottom: footer ? spacing.lg : insets.bottom + spacing.lg },
+        ]}
+        keyboardShouldPersistTaps="handled"
+        keyboardDismissMode={Platform.OS === 'web' ? 'none' : 'on-drag'}
+        automaticallyAdjustKeyboardInsets={false}
+        showsVerticalScrollIndicator={false}
       >
-        <Animated.View
-          style={[
-            styles.flex,
-            {
-              paddingBottom: isWeb
-                ? 0
-                : keyboardHeight.interpolate({
-                    inputRange: [0, 500],
-                    outputRange: [0, 500],
-                  }),
-            },
-          ]}
-        >
-          <ScrollView
-            ref={scrollRef}
-            style={styles.flex}
-            contentContainerStyle={[
-              styles.scroll,
-              { paddingBottom: footer ? spacing.md : insets.bottom + spacing.lg },
-            ]}
-            keyboardShouldPersistTaps="handled"
-            keyboardDismissMode={isWeb ? 'none' : 'interactive'}
-            automaticallyAdjustKeyboardInsets={Platform.OS === 'ios'}
-            showsVerticalScrollIndicator={false}
-          >
-            <View style={styles.form}>{children}</View>
-          </ScrollView>
+        <View style={styles.form}>{children}</View>
+      </ScrollView>
 
-          {footer ? (
-            <View style={[styles.footer, { paddingBottom: insets.bottom + spacing.sm }]}>
-              {keyboardOpen && !isWeb ? (
-                <Pressable
-                  onPress={Keyboard.dismiss}
-                  hitSlop={8}
-                  style={styles.dismissRow}
-                >
-                  <Text style={styles.dismissText}>Done typing</Text>
-                </Pressable>
-              ) : null}
-              <View style={styles.footerInner}>{footer}</View>
-            </View>
+      {footer ? (
+        <View style={[styles.footer, { paddingBottom: insets.bottom + spacing.sm }]}>
+          {showNext ? (
+            <Pressable
+              onPress={() => focus?.focusNext()}
+              hitSlop={8}
+              style={styles.nextRow}
+              accessibilityLabel="Next field"
+            >
+              <Text style={styles.nextLabel}>Next</Text>
+              <View style={styles.nextIcon}>
+                <ChevronRight size={16} color={colors.bgDeep} />
+              </View>
+            </Pressable>
           ) : null}
-        </Animated.View>
-      </KeyboardAvoidingView>
+          <View style={styles.footerInner}>{footer}</View>
+        </View>
+      ) : null}
     </LinearGradient>
+  );
+}
+
+export default function KeyboardFormScreen(props: Props) {
+  return (
+    <FormFocusProvider>
+      <KeyboardFormScreenInner {...props} />
+    </FormFocusProvider>
   );
 }
 
@@ -149,14 +115,25 @@ const styles = StyleSheet.create({
     alignSelf: 'center',
     gap: spacing.xs,
   },
-  dismissRow: {
-    alignSelf: 'center',
+  nextRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    alignSelf: 'flex-end',
+    gap: spacing.sm,
+    marginBottom: spacing.sm,
     paddingVertical: spacing.xs,
-    marginBottom: spacing.xs,
   },
-  dismissText: {
+  nextLabel: {
     color: colors.primary,
     fontSize: 15,
     fontFamily: fonts.sansSemibold,
+  },
+  nextIcon: {
+    width: 32,
+    height: 32,
+    borderRadius: radius.pill,
+    backgroundColor: colors.primary,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
 });

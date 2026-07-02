@@ -36,6 +36,7 @@ export default function PhoneVerifyScreen({ route }: Props) {
           subtitle={`Code sent to ${route.params.draft.phone}. Demo code: 123456`}
         />
         <TextField
+          fieldIndex={0}
           label="Code"
           keyboardType="number-pad"
           value={code}

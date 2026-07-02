@@ -1,9 +1,10 @@
-import React, { useMemo } from 'react';
+import React, { forwardRef, useMemo } from 'react';
 import {
   Keyboard,
   Pressable,
   StyleSheet,
   Text,
+  TextInput,
   TextInputProps,
   View,
 } from 'react-native';
@@ -27,16 +28,22 @@ type Props = Omit<TextInputProps, 'value' | 'onChangeText'> & {
   label: string;
   value: string;
   onChangeText: (text: string) => void;
+  fieldIndex?: number;
 };
 
-export default function EmailInput({ label, value, onChangeText, ...rest }: Props) {
+const EmailInput = forwardRef<TextInput, Props>(function EmailInput(
+  { label, value, onChangeText, fieldIndex, ...rest },
+  ref,
+) {
   const suggestions = useMemo(() => suggestionsFor(value), [value]);
   const showSuggestions = value.includes('@') && suggestions.length > 0;
 
   return (
     <View style={styles.wrap}>
       <TextField
+        ref={ref}
         label={label}
+        fieldIndex={fieldIndex}
         autoCapitalize="none"
         autoCorrect={false}
         keyboardType="email-address"
@@ -66,7 +73,9 @@ export default function EmailInput({ label, value, onChangeText, ...rest }: Prop
       ) : null}
     </View>
   );
-}
+});
+
+export default EmailInput;
 
 const styles = StyleSheet.create({
   wrap: { marginBottom: spacing.xs },

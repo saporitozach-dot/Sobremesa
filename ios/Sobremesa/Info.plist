@@ -28,7 +28,7 @@
 			<key>CFBundleURLSchemes</key>
 			<array>
 				<string>sobremesa</string>
-				<string>com.sobremesa.app</string>
+				<string>com.saporitozach.sobremesa</string>
 			</array>
 		</dict>
 	</array>

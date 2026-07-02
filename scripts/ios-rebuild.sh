@@ -33,7 +33,7 @@ APP="$HOME/Library/Developer/Xcode/DerivedData/Sobremesa-bepailrylgtotxepaatiire
 if [[ -d "$APP" ]]; then
   echo "→ Installing on booted simulator..."
   xcrun simctl install booted "$APP" || true
-  xcrun simctl launch booted com.sobremesa.app || true
+  xcrun simctl launch booted com.saporitozach.sobremesa || true
 fi
 
 echo "✓ Rebuild complete"
