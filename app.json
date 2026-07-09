@@ -17,6 +17,7 @@
       "supportsTablet": true,
       "bundleIdentifier": "com.saporitozach.sobremesa",
       "infoPlist": {
+        "NSCameraUsageDescription": "Sobremesa uses your camera so you can take memory photos without leaving your phone-down session.",
         "NSLocationWhenInUseUsageDescription": "Sobremesa uses your location to know when you've arrived at a partner restaurant so it can start a phone-free dining session.",
         "NSLocationAlwaysAndWhenInUseUsageDescription": "Sobremesa monitors restaurant zones in the background so it can invite you into a phone-free session the moment you sit down.",
         "UIBackgroundModes": [
@@ -52,7 +53,14 @@
         }
       ],
       "expo-notifications",
-      "expo-font"
+      "expo-font",
+      [
+        "expo-live-activity",
+        {
+          "enablePushNotifications": false
+        }
+      ],
+      "./plugins/without-push-entitlement.js"
     ]
   }
 }

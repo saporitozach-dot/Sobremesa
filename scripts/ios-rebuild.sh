@@ -6,7 +6,18 @@ export PATH="$HOME/.local/ruby/bin:$HOME/.local/node-v22.16.0-darwin-arm64/bin:$
 
 cd "$ROOT"
 
+echo "→ Installing iOS pods..."
+cd ios
+export PATH="$HOME/.local/ruby/bin:$PATH"
+security find-certificate -a -p /System/Library/Keychains/SystemRootCertificates.keychain > /tmp/ios-cacert.pem 2>/dev/null || true
+export SSL_CERT_FILE=/tmp/ios-cacert.pem
+if ! pod install --no-repo-update; then
+  echo "pod install failed; continuing with existing Pods if present."
+fi
+ruby "$ROOT/scripts/patch-ios-explicit-modules.rb"
+
 echo "→ Bundling JavaScript..."
+cd "$ROOT"
 BUNDLE_OUT="$ROOT/ios/Sobremesa/main.jsbundle"
 ENTRY_FILE="$(node -e "require('expo/scripts/resolveAppEntry')" "$ROOT" ios absolute | tail -n 1)"
 CLI_PATH="$(node --print "require.resolve('@expo/cli', { paths: [require.resolve('expo/package.json')] })")"
@@ -17,6 +28,12 @@ node "$CLI_PATH" export:embed \
   --bundle-output "$BUNDLE_OUT" \
   --assets-dest "$ROOT/ios/Sobremesa" \
   --reset-cache
+
+echo "→ Patching Xcode explicit-module settings..."
+ruby "$ROOT/scripts/patch-ios-explicit-modules.rb"
+
+echo "→ Clearing stale DerivedData..."
+find "$HOME/Library/Developer/Xcode/DerivedData" -maxdepth 1 -type d -name 'Sobremesa-*' -exec rm -rf {} + 2>/dev/null || true
 
 echo "→ Clean building iOS..."
 cd ios

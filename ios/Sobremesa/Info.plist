@@ -45,6 +45,8 @@
 		<key>NSAllowsLocalNetworking</key>
 		<true/>
 	</dict>
+	<key>NSCameraUsageDescription</key>
+	<string>Sobremesa uses your camera so you can take memory photos without leaving your phone-down session.</string>
 	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
 	<string>Sobremesa monitors restaurant zones in the background so it can invite you into a phone-free session.</string>
 	<key>NSLocationAlwaysUsageDescription</key>
@@ -53,6 +55,10 @@
 	<string>Sobremesa uses your location to know when you've arrived at a partner restaurant so it can start a phone-free dining session.</string>
 	<key>NSMicrophoneUsageDescription</key>
 	<string>Allow $(PRODUCT_NAME) to access your microphone</string>
+	<key>NSSupportsLiveActivities</key>
+	<true/>
+	<key>NSSupportsLiveActivitiesFrequentUpdates</key>
+	<false/>
 	<key>RCTNewArchEnabled</key>
 	<false/>
 	<key>UIBackgroundModes</key>

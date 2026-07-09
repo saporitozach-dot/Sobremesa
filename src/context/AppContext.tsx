@@ -27,6 +27,10 @@ import {
   Voucher,
 } from '../types';
 import {
+  startSessionLiveActivity,
+  stopSessionLiveActivity,
+} from '../services/sessionLiveActivity';
+import {
   dismissSessionNotification,
   showSessionNotification,
 } from '../services/sessionNotifications';
@@ -146,8 +150,9 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     if (!hydrated || !activeSession) return;
+    void startSessionLiveActivity(activeSession);
     void showSessionNotification(activeSession.restaurantName, activeSession.goalMinutes);
-  }, [hydrated, activeSession?.id, activeSession?.restaurantName, activeSession?.goalMinutes]);
+  }, [hydrated, activeSession?.id, activeSession?.restaurantName, activeSession?.goalMinutes, activeSession?.startedAt]);
 
   useEffect(() => {
     return onZoneEnter((restaurantId) => {
@@ -201,6 +206,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     setOnboarded(false);
     setActiveSession(null);
     setPendingRestaurantId(null);
+    await stopSessionLiveActivity();
     await dismissSessionNotification();
     await persist({ account: null, onboarded: false, activeSession: null });
   }, [persist]);
@@ -243,14 +249,17 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     setActiveSession(session);
     setPendingRestaurantId(null);
     await persist({ activeSession: session });
+    await startSessionLiveActivity(session);
     await showSessionNotification(restaurant.name, settings.goalMinutes);
   }, [activeZone?.restaurantId, pendingRestaurantId, settings.goalMinutes, persist]);
 
   const endSessionEarly = useCallback(async () => {
+    const session = activeSession;
     setActiveSession(null);
     await persist({ activeSession: null });
+    await stopSessionLiveActivity(session ?? undefined, 'Session ended early');
     await dismissSessionNotification();
-  }, [persist]);
+  }, [activeSession, persist]);
 
   const completeSession = useCallback(async (): Promise<SessionCompleteResult | null> => {
     if (!activeSession) return null;
@@ -302,6 +311,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       setVouchers(nextVouchers);
       setSessions(nextSessions);
       setActiveSession(null);
+      await stopSessionLiveActivity(completed, 'Stamp earned');
       await dismissSessionNotification();
       await persist({
         sessions: nextSessions,
@@ -315,6 +325,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     setStamps(nextStamps);
     setSessions(nextSessions);
     setActiveSession(null);
+    await stopSessionLiveActivity(completed, 'Stamp earned');
     await dismissSessionNotification();
     await persist({
       sessions: nextSessions,

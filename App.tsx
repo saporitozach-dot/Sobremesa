@@ -28,6 +28,7 @@ import RewardsScreen from './src/screens/RewardsScreen';
 import RedeemVoucherScreen from './src/screens/RedeemVoucherScreen';
 import ConfirmRedeemScreen from './src/screens/ConfirmRedeemScreen';
 import RestaurantDetailScreen from './src/screens/RestaurantDetailScreen';
+import SessionCameraScreen from './src/screens/SessionCameraScreen';
 import ActiveSessionRedirect from './src/navigation/ActiveSessionRedirect';
 
 export type RootStackParamList = {
@@ -48,6 +49,7 @@ export type RootStackParamList = {
   RestaurantDetail: { restaurantId: string; distanceMiles?: number };
   ZonePrompt: undefined;
   Locked: undefined;
+  SessionCamera: undefined;
   SessionComplete: {
     restaurantId: string;
     restaurantName: string;
@@ -185,6 +187,11 @@ function RootNavigator() {
             name="Locked"
             component={LockedModeScreen}
             options={{ headerShown: false, gestureEnabled: false }}
+          />
+          <Stack.Screen
+            name="SessionCamera"
+            component={SessionCameraScreen}
+            options={{ headerShown: false, presentation: 'fullScreenModal' }}
           />
           <Stack.Screen
             name="SessionComplete"

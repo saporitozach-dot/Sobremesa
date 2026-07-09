@@ -16,7 +16,7 @@ import { colors, fonts, spacing } from '../theme';
 type Props = NativeStackScreenProps<RootStackParamList, 'RestaurantDetail'>;
 
 export default function RestaurantDetailScreen({ navigation, route }: Props) {
-  const { stampCountFor } = useApp();
+  const { activeSession, stampCountFor, simulateArrival } = useApp();
   const restaurant = getRestaurant(route.params.restaurantId);
 
   if (!restaurant) {
@@ -63,6 +63,16 @@ export default function RestaurantDetailScreen({ navigation, route }: Props) {
           variant="secondary"
           onPress={() => navigation.navigate('Rewards')}
         />
+        {restaurant.id === 'sobremesa-demo' && !activeSession ? (
+          <Button
+            label="Start demo session"
+            onPress={() => {
+              simulateArrival(restaurant.id);
+              navigation.navigate('ZonePrompt');
+            }}
+            style={styles.demoStartButton}
+          />
+        ) : null}
       </FadeSlideIn>
     </ScreenScroll>
   );
@@ -82,4 +92,5 @@ const styles = StyleSheet.create({
   },
   rewardCard: { marginBottom: spacing.lg, gap: spacing.xs },
   progress: { marginTop: spacing.sm },
+  demoStartButton: { marginTop: spacing.sm },
 });

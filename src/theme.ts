@@ -14,6 +14,9 @@ export const colors = {
   success: '#6B9E78',
   danger: '#C45C5C',
   overlay: 'rgba(0,0,0,0.65)',
+  cameraVintageOverlay: 'rgba(95, 57, 21, 0.34)',
+  cameraFrame: 'rgba(244, 239, 230, 0.2)',
+  cameraTimestamp: '#E8D4AF',
 };
 
 export const spacing = {

@@ -1,5 +1,5 @@
 import React, { useEffect, useRef } from 'react';
-import { Animated, Easing, ViewStyle } from 'react-native';
+import { Animated, Easing, StyleProp, ViewStyle } from 'react-native';
 import { motion } from '../theme';
 
 const EASE_OUT = Easing.bezier(0.22, 1, 0.36, 1);
@@ -9,7 +9,7 @@ type Props = {
   delay?: number;
   distance?: number;
   duration?: number;
-  style?: ViewStyle;
+  style?: StyleProp<ViewStyle>;
   trigger?: number | string;
 };
 

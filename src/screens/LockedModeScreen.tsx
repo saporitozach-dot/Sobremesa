@@ -170,7 +170,7 @@ export default function LockedModeScreen({ navigation }: Props) {
             variant="secondary"
             onPress={() => {
               closeSheet();
-              Linking.openURL('photos-redirect://');
+              navigation.navigate('SessionCamera');
             }}
           />
         ) : null}

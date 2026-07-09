@@ -19,6 +19,9 @@ export async function showSessionNotification(
   restaurantName: string,
   goalMinutes: number,
 ): Promise<void> {
+  // iOS uses Live Activities for lock-screen session UI (see sessionLiveActivity.ts).
+  if (Platform.OS === 'ios') return;
+
   await ensureSessionNotificationChannel();
   await Notifications.scheduleNotificationAsync({
     identifier: SESSION_NOTIFICATION_ID,
@@ -39,6 +42,8 @@ export async function updateSessionNotification(
   elapsedSeconds: number,
   goalSeconds: number,
 ): Promise<void> {
+  if (Platform.OS === 'ios') return;
+
   await Notifications.scheduleNotificationAsync({
     identifier: SESSION_NOTIFICATION_ID,
     content: {

@@ -9,27 +9,79 @@
 /* Begin PBXBuildFile section */
 		11DCB4FB8D9671E0500CEE70 /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = 25579A7DFFEE87A8A0D2769B /* PrivacyInfo.xcprivacy */; };
 		13B07FBF1A68108700A75B9A /* Images.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 13B07FB51A68108700A75B9A /* Images.xcassets */; };
+		24E093C7A2A641A8A5AFCEBF /* View+applyWidgetURL.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4216716F7C924026B0D95A65 /* View+applyWidgetURL.swift */; };
+		3015C0533D6E4F2F9D634056 /* Date+toTimerInterval.swift in Sources */ = {isa = PBXBuildFile; fileRef = BF3A7139756F49289545C081 /* Date+toTimerInterval.swift */; };
 		3E461D99554A48A4959DE609 /* SplashScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = AA286B85B6C04FC6940260E9 /* SplashScreen.storyboard */; };
+		3E6697A0604D481F9E327AD6 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 013A6DA015564CCCB09C149A /* Assets.xcassets */; };
+		50377FAC220B4F6D8982489B /* View+applyIfPresent.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5B00684555F748818FD1C50E /* View+applyIfPresent.swift */; };
+		58FFB2293C2A429894493658 /* ViewHelpers.swift in Sources */ = {isa = PBXBuildFile; fileRef = F23399D7A79E4A60824FCAF8 /* ViewHelpers.swift */; };
+		76BE82D0F06D4F8AAE0E3464 /* LiveActivityWidget.swift in Sources */ = {isa = PBXBuildFile; fileRef = 53F5BF2A0AFE45C2B58F8E91 /* LiveActivityWidget.swift */; };
+		92FA2DEE2FFF02FE00CB9835 /* Makefile in Sources */ = {isa = PBXBuildFile; fileRef = 92FA2DED2FFF02FE00CB9835 /* Makefile */; };
+		94689C115818426F9575C13F /* Color+hex.swift in Sources */ = {isa = PBXBuildFile; fileRef = 994E07C432EC4F8B94890244 /* Color+hex.swift */; };
+		A1B2C3D4E5F60718293A4B5D /* main.jsbundle in Resources */ = {isa = PBXBuildFile; fileRef = A1B2C3D4E5F60718293A4B5C /* main.jsbundle */; };
+		A5DAD1FB8F5144958D2618E7 /* LiveActivityWidgetBundle.swift in Sources */ = {isa = PBXBuildFile; fileRef = 91E7DF7F491145B39C374A2D /* LiveActivityWidgetBundle.swift */; };
 		BB2F792D24A3F905000567C9 /* Expo.plist in Resources */ = {isa = PBXBuildFile; fileRef = BB2F792C24A3F905000567C9 /* Expo.plist */; };
+		BF659CE8A7A64D78A3AF9042 /* LiveActivity.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = 42E4410AE7C84FD982F3031F /* LiveActivity.appex */; };
+		C3F28F3B1ACD49CA82968732 /* LiveActivityView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2D87FD3BC9224C59A762D667 /* LiveActivityView.swift */; };
 		D278010B13997B2D2D588731 /* ExpoModulesProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = 26BA5ABCE367831B9B7680A7 /* ExpoModulesProvider.swift */; };
 		DF8B9429B2B3E4FD00CD4746 /* libPods-Sobremesa.a in Frameworks */ = {isa = PBXBuildFile; fileRef = D0949AC3801CA08E93CBC984 /* libPods-Sobremesa.a */; };
+		EBAA26F09DD1404AB25CCDAF /* Image+dynamic.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4CF2A4DAEF9245A7813B69E5 /* Image+dynamic.swift */; };
 		F11748422D0307B40044C1D9 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = F11748412D0307B40044C1D9 /* AppDelegate.swift */; };
 /* End PBXBuildFile section */
 
+/* Begin PBXContainerItemProxy section */
+		00F7EA5F7BC244ABA9C59B18 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 83CBB9F71A601CBA00E9B192 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = E3E46F7B3CFD4CC4B24D1651;
+			remoteInfo = LiveActivity;
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXCopyFilesBuildPhase section */
+		3FE82CAE5CCC414090756CE2 /* Embed Foundation Extensions */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 13;
+			files = (
+				BF659CE8A7A64D78A3AF9042 /* LiveActivity.appex in Embed Foundation Extensions */,
+			);
+			name = "Embed Foundation Extensions";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXCopyFilesBuildPhase section */
+
 /* Begin PBXFileReference section */
+		013A6DA015564CCCB09C149A /* Assets.xcassets */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = undefined; includeInIndex = 0; lastKnownFileType = folder.assetcatalog; name = Assets.xcassets; path = Assets.xcassets; sourceTree = "<group>"; };
 		13B07F961A680F5B00A75B9A /* Sobremesa.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Sobremesa.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		13B07FB51A68108700A75B9A /* Images.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; name = Images.xcassets; path = Sobremesa/Images.xcassets; sourceTree = "<group>"; };
 		13B07FB61A68108700A75B9A /* Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; name = Info.plist; path = Sobremesa/Info.plist; sourceTree = "<group>"; };
 		25579A7DFFEE87A8A0D2769B /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xml; name = PrivacyInfo.xcprivacy; path = Sobremesa/PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
 		26BA5ABCE367831B9B7680A7 /* ExpoModulesProvider.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = ExpoModulesProvider.swift; path = "Pods/Target Support Files/Pods-Sobremesa/ExpoModulesProvider.swift"; sourceTree = "<group>"; };
+		2D87FD3BC9224C59A762D667 /* LiveActivityView.swift */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 4; includeInIndex = 0; lastKnownFileType = sourcecode.swift; name = LiveActivityView.swift; path = LiveActivityView.swift; sourceTree = "<group>"; };
 		2F0045DD68D0D97A961B4C7C /* Pods-Sobremesa.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Sobremesa.release.xcconfig"; path = "Target Support Files/Pods-Sobremesa/Pods-Sobremesa.release.xcconfig"; sourceTree = "<group>"; };
+		4216716F7C924026B0D95A65 /* View+applyWidgetURL.swift */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 4; includeInIndex = 0; lastKnownFileType = sourcecode.swift; name = "View+applyWidgetURL.swift"; path = "View+applyWidgetURL.swift"; sourceTree = "<group>"; };
+		42E4410AE7C84FD982F3031F /* LiveActivity.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; fileEncoding = undefined; includeInIndex = 0; lastKnownFileType = undefined; name = LiveActivity.appex; path = LiveActivity.appex; sourceTree = BUILT_PRODUCTS_DIR; };
+		4CF2A4DAEF9245A7813B69E5 /* Image+dynamic.swift */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 4; includeInIndex = 0; lastKnownFileType = sourcecode.swift; name = "Image+dynamic.swift"; path = "Image+dynamic.swift"; sourceTree = "<group>"; };
+		53F5BF2A0AFE45C2B58F8E91 /* LiveActivityWidget.swift */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 4; includeInIndex = 0; lastKnownFileType = sourcecode.swift; name = LiveActivityWidget.swift; path = LiveActivityWidget.swift; sourceTree = "<group>"; };
+		5B00684555F748818FD1C50E /* View+applyIfPresent.swift */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 4; includeInIndex = 0; lastKnownFileType = sourcecode.swift; name = "View+applyIfPresent.swift"; path = "View+applyIfPresent.swift"; sourceTree = "<group>"; };
 		5D4AB63445B9247C10B7FAA8 /* Pods-Sobremesa.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Sobremesa.debug.xcconfig"; path = "Target Support Files/Pods-Sobremesa/Pods-Sobremesa.debug.xcconfig"; sourceTree = "<group>"; };
+		91E7DF7F491145B39C374A2D /* LiveActivityWidgetBundle.swift */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 4; includeInIndex = 0; lastKnownFileType = sourcecode.swift; name = LiveActivityWidgetBundle.swift; path = LiveActivityWidgetBundle.swift; sourceTree = "<group>"; };
+		92FA2DED2FFF02FE00CB9835 /* Makefile */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.make; path = Makefile; sourceTree = "<group>"; };
+		994E07C432EC4F8B94890244 /* Color+hex.swift */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 4; includeInIndex = 0; lastKnownFileType = sourcecode.swift; name = "Color+hex.swift"; path = "Color+hex.swift"; sourceTree = "<group>"; };
+		A1B2C3D4E5F60718293A4B5C /* main.jsbundle */ = {isa = PBXFileReference; lastKnownFileType = text; name = main.jsbundle; path = Sobremesa/main.jsbundle; sourceTree = "<group>"; };
 		AA286B85B6C04FC6940260E9 /* SplashScreen.storyboard */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.storyboard; name = SplashScreen.storyboard; path = Sobremesa/SplashScreen.storyboard; sourceTree = "<group>"; };
 		BB2F792C24A3F905000567C9 /* Expo.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = Expo.plist; sourceTree = "<group>"; };
+		BF3A7139756F49289545C081 /* Date+toTimerInterval.swift */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 4; includeInIndex = 0; lastKnownFileType = sourcecode.swift; name = "Date+toTimerInterval.swift"; path = "Date+toTimerInterval.swift"; sourceTree = "<group>"; };
 		D0949AC3801CA08E93CBC984 /* libPods-Sobremesa.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-Sobremesa.a"; sourceTree = BUILT_PRODUCTS_DIR; };
+		EBC6C35BBDD84E2CB17F30EC /* Info.plist */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 4; includeInIndex = 0; lastKnownFileType = text.plist.xml; name = Info.plist; path = Info.plist; sourceTree = "<group>"; };
 		ED297162215061F000B7C4FE /* JavaScriptCore.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = JavaScriptCore.framework; path = System/Library/Frameworks/JavaScriptCore.framework; sourceTree = SDKROOT; };
 		F11748412D0307B40044C1D9 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = AppDelegate.swift; path = Sobremesa/AppDelegate.swift; sourceTree = "<group>"; };
 		F11748442D0722820044C1D9 /* Sobremesa-Bridging-Header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = "Sobremesa-Bridging-Header.h"; path = "Sobremesa/Sobremesa-Bridging-Header.h"; sourceTree = "<group>"; };
+		F23399D7A79E4A60824FCAF8 /* ViewHelpers.swift */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 4; includeInIndex = 0; lastKnownFileType = sourcecode.swift; name = ViewHelpers.swift; path = ViewHelpers.swift; sourceTree = "<group>"; };
+		FAD3ADA7D8324CB6B67C5726 /* LiveActivity.entitlements */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = undefined; includeInIndex = 0; lastKnownFileType = unknown; name = LiveActivity.entitlements; path = LiveActivity.entitlements; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -38,6 +90,13 @@
 			buildActionMask = 2147483647;
 			files = (
 				DF8B9429B2B3E4FD00CD4746 /* libPods-Sobremesa.a in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		866C1B6C2F5C48F6A3C41D15 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -53,7 +112,9 @@
 				13B07FB51A68108700A75B9A /* Images.xcassets */,
 				13B07FB61A68108700A75B9A /* Info.plist */,
 				AA286B85B6C04FC6940260E9 /* SplashScreen.storyboard */,
+				A1B2C3D4E5F60718293A4B5C /* main.jsbundle */,
 				25579A7DFFEE87A8A0D2769B /* PrivacyInfo.xcprivacy */,
+				92FA2DED2FFF02FE00CB9835 /* Makefile */,
 			);
 			name = Sobremesa;
 			sourceTree = "<group>";
@@ -65,6 +126,26 @@
 				D0949AC3801CA08E93CBC984 /* libPods-Sobremesa.a */,
 			);
 			name = Frameworks;
+			sourceTree = "<group>";
+		};
+		31D15A6347B54307BE5CD22F /* LiveActivity */ = {
+			isa = PBXGroup;
+			children = (
+				994E07C432EC4F8B94890244 /* Color+hex.swift */,
+				BF3A7139756F49289545C081 /* Date+toTimerInterval.swift */,
+				4CF2A4DAEF9245A7813B69E5 /* Image+dynamic.swift */,
+				2D87FD3BC9224C59A762D667 /* LiveActivityView.swift */,
+				53F5BF2A0AFE45C2B58F8E91 /* LiveActivityWidget.swift */,
+				91E7DF7F491145B39C374A2D /* LiveActivityWidgetBundle.swift */,
+				5B00684555F748818FD1C50E /* View+applyIfPresent.swift */,
+				4216716F7C924026B0D95A65 /* View+applyWidgetURL.swift */,
+				F23399D7A79E4A60824FCAF8 /* ViewHelpers.swift */,
+				EBC6C35BBDD84E2CB17F30EC /* Info.plist */,
+				013A6DA015564CCCB09C149A /* Assets.xcassets */,
+				FAD3ADA7D8324CB6B67C5726 /* LiveActivity.entitlements */,
+			);
+			name = LiveActivity;
+			path = LiveActivity;
 			sourceTree = "<group>";
 		};
 		3D463E958F4464C1B6E284BB /* Sobremesa */ = {
@@ -99,6 +180,7 @@
 				2D16E6871FA4F8E400B85C8A /* Frameworks */,
 				99DCB54A7B3D8D535AF515A2 /* Pods */,
 				4F99E702603C8AFA97198F41 /* ExpoModulesProviders */,
+				31D15A6347B54307BE5CD22F /* LiveActivity */,
 			);
 			indentWidth = 2;
 			sourceTree = "<group>";
@@ -109,6 +191,7 @@
 			isa = PBXGroup;
 			children = (
 				13B07F961A680F5B00A75B9A /* Sobremesa.app */,
+				42E4410AE7C84FD982F3031F /* LiveActivity.appex */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -146,15 +229,34 @@
 				00DD1BFF1BD5951E006B06BC /* Bundle React Native code and images */,
 				800E24972A6A228C8D4807E9 /* [CP] Copy Pods Resources */,
 				FE1E31B52C25B38F177BBF3E /* [CP] Embed Pods Frameworks */,
+				3FE82CAE5CCC414090756CE2 /* Embed Foundation Extensions */,
 			);
 			buildRules = (
 			);
 			dependencies = (
+				FF0C80FF478A4821B76F49EC /* PBXTargetDependency */,
 			);
 			name = Sobremesa;
 			productName = Sobremesa;
 			productReference = 13B07F961A680F5B00A75B9A /* Sobremesa.app */;
 			productType = "com.apple.product-type.application";
+		};
+		E3E46F7B3CFD4CC4B24D1651 /* LiveActivity */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 70F4C29AC0874E118372377F /* Build configuration list for PBXNativeTarget "LiveActivity" */;
+			buildPhases = (
+				981F257A28CA48FAAFCB38B3 /* Sources */,
+				866C1B6C2F5C48F6A3C41D15 /* Frameworks */,
+				FFB9C099FB0F48109A4F13AB /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = LiveActivity;
+			productName = LiveActivity;
+			productReference = 42E4410AE7C84FD982F3031F /* LiveActivity.appex */;
+			productType = "com.apple.product-type.app-extension";
 		};
 /* End PBXNativeTarget section */
 
@@ -165,6 +267,9 @@
 				LastUpgradeCheck = 1130;
 				TargetAttributes = {
 					13B07F861A680F5B00A75B9A = {
+						LastSwiftMigration = 1250;
+					};
+					E3E46F7B3CFD4CC4B24D1651 = {
 						LastSwiftMigration = 1250;
 					};
 				};
@@ -183,6 +288,7 @@
 			projectRoot = "";
 			targets = (
 				13B07F861A680F5B00A75B9A /* Sobremesa */,
+				E3E46F7B3CFD4CC4B24D1651 /* LiveActivity */,
 			);
 		};
 /* End PBXProject section */
@@ -192,10 +298,19 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				A1B2C3D4E5F60718293A4B5D /* main.jsbundle in Resources */,
 				BB2F792D24A3F905000567C9 /* Expo.plist in Resources */,
 				13B07FBF1A68108700A75B9A /* Images.xcassets in Resources */,
 				3E461D99554A48A4959DE609 /* SplashScreen.storyboard in Resources */,
 				11DCB4FB8D9671E0500CEE70 /* PrivacyInfo.xcprivacy in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		FFB9C099FB0F48109A4F13AB /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				3E6697A0604D481F9E327AD6 /* Assets.xcassets in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -332,12 +447,37 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				92FA2DEE2FFF02FE00CB9835 /* Makefile in Sources */,
 				F11748422D0307B40044C1D9 /* AppDelegate.swift in Sources */,
 				D278010B13997B2D2D588731 /* ExpoModulesProvider.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		981F257A28CA48FAAFCB38B3 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				94689C115818426F9575C13F /* Color+hex.swift in Sources */,
+				3015C0533D6E4F2F9D634056 /* Date+toTimerInterval.swift in Sources */,
+				EBAA26F09DD1404AB25CCDAF /* Image+dynamic.swift in Sources */,
+				C3F28F3B1ACD49CA82968732 /* LiveActivityView.swift in Sources */,
+				76BE82D0F06D4F8AAE0E3464 /* LiveActivityWidget.swift in Sources */,
+				A5DAD1FB8F5144958D2618E7 /* LiveActivityWidgetBundle.swift in Sources */,
+				50377FAC220B4F6D8982489B /* View+applyIfPresent.swift in Sources */,
+				24E093C7A2A641A8A5AFCEBF /* View+applyWidgetURL.swift in Sources */,
+				58FFB2293C2A429894493658 /* ViewHelpers.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		FF0C80FF478A4821B76F49EC /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = E3E46F7B3CFD4CC4B24D1651 /* LiveActivity */;
+			targetProxy = 00F7EA5F7BC244ABA9C59B18 /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
 
 /* Begin XCBuildConfiguration section */
 		13B07F941A680F5B00A75B9A /* Debug */ = {
@@ -345,6 +485,7 @@
 			baseConfigurationReference = 5D4AB63445B9247C10B7FAA8 /* Pods-Sobremesa.debug.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CLANG_ENABLE_EXPLICIT_MODULES = NO;
 				CLANG_ENABLE_MODULES = YES;
 				CODE_SIGN_ENTITLEMENTS = Sobremesa/Sobremesa.entitlements;
 				CURRENT_PROJECT_VERSION = 1;
@@ -369,6 +510,7 @@
 				OTHER_SWIFT_FLAGS = "$(inherited) -D EXPO_CONFIGURATION_DEBUG";
 				PRODUCT_BUNDLE_IDENTIFIER = com.saporitozach.sobremesa;
 				PRODUCT_NAME = Sobremesa;
+				SWIFT_ENABLE_EXPLICIT_MODULES = NO;
 				SWIFT_OBJC_BRIDGING_HEADER = "Sobremesa/Sobremesa-Bridging-Header.h";
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 				SWIFT_VERSION = 5.0;
@@ -382,6 +524,7 @@
 			baseConfigurationReference = 2F0045DD68D0D97A961B4C7C /* Pods-Sobremesa.release.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CLANG_ENABLE_EXPLICIT_MODULES = NO;
 				CLANG_ENABLE_MODULES = YES;
 				CODE_SIGN_ENTITLEMENTS = Sobremesa/Sobremesa.entitlements;
 				CURRENT_PROJECT_VERSION = 1;
@@ -401,12 +544,38 @@
 				OTHER_SWIFT_FLAGS = "$(inherited) -D EXPO_CONFIGURATION_RELEASE";
 				PRODUCT_BUNDLE_IDENTIFIER = com.saporitozach.sobremesa;
 				PRODUCT_NAME = Sobremesa;
+				SWIFT_ENABLE_EXPLICIT_MODULES = NO;
 				SWIFT_OBJC_BRIDGING_HEADER = "Sobremesa/Sobremesa-Bridging-Header.h";
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
 				VERSIONING_SYSTEM = "apple-generic";
 			};
 			name = Release;
+		};
+		232ED5139C7F49D083304737 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				APPLICATION_EXTENSION_API_ONLY = YES;
+				CLANG_ENABLE_EXPLICIT_MODULES = NO;
+				CODE_SIGN_ENTITLEMENTS = LiveActivity/LiveActivity.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = Z6HHL2YR3J;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = LiveActivity/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = LiveActivity;
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				IPHONEOS_DEPLOYMENT_TARGET = 16.2;
+				MARKETING_VERSION = 0.1.0;
+				OTHER_SWIFT_FLAGS = "$(inherited) -D EXPO_CONFIGURATION_DEBUG";
+				PRODUCT_BUNDLE_IDENTIFIER = com.saporitozach.sobremesa.LiveActivity;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_ENABLE_EXPLICIT_MODULES = NO;
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
 		};
 		83CBBA201A601CBA00E9B192 /* Debug */ = {
 			isa = XCBuildConfiguration;
@@ -415,6 +584,7 @@
 				CLANG_ANALYZER_LOCALIZABILITY_NONLOCALIZED = YES;
 				CLANG_CXX_LANGUAGE_STANDARD = "c++20";
 				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_EXPLICIT_MODULES = NO;
 				CLANG_ENABLE_MODULES = YES;
 				CLANG_ENABLE_OBJC_ARC = YES;
 				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
@@ -466,6 +636,7 @@
 				REACT_NATIVE_PATH = "${PODS_ROOT}/../../node_modules/react-native";
 				SDKROOT = iphoneos;
 				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "$(inherited) DEBUG";
+				SWIFT_ENABLE_EXPLICIT_MODULES = NO;
 				USE_HERMES = true;
 			};
 			name = Debug;
@@ -477,6 +648,7 @@
 				CLANG_ANALYZER_LOCALIZABILITY_NONLOCALIZED = YES;
 				CLANG_CXX_LANGUAGE_STANDARD = "c++20";
 				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_EXPLICIT_MODULES = NO;
 				CLANG_ENABLE_MODULES = YES;
 				CLANG_ENABLE_OBJC_ARC = YES;
 				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
@@ -519,8 +691,34 @@
 				MTL_ENABLE_DEBUG_INFO = NO;
 				REACT_NATIVE_PATH = "${PODS_ROOT}/../../node_modules/react-native";
 				SDKROOT = iphoneos;
+				SWIFT_ENABLE_EXPLICIT_MODULES = NO;
 				USE_HERMES = true;
 				VALIDATE_PRODUCT = YES;
+			};
+			name = Release;
+		};
+		B69EC8C1E59D4A32A9942123 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				APPLICATION_EXTENSION_API_ONLY = YES;
+				CLANG_ENABLE_EXPLICIT_MODULES = NO;
+				CODE_SIGN_ENTITLEMENTS = LiveActivity/LiveActivity.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = Z6HHL2YR3J;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = LiveActivity/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = LiveActivity;
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				IPHONEOS_DEPLOYMENT_TARGET = 16.2;
+				MARKETING_VERSION = 0.1.0;
+				OTHER_SWIFT_FLAGS = "$(inherited) -D EXPO_CONFIGURATION_RELEASE";
+				PRODUCT_BUNDLE_IDENTIFIER = com.saporitozach.sobremesa.LiveActivity;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_ENABLE_EXPLICIT_MODULES = NO;
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
 			};
 			name = Release;
 		};
@@ -532,6 +730,15 @@
 			buildConfigurations = (
 				13B07F941A680F5B00A75B9A /* Debug */,
 				13B07F951A680F5B00A75B9A /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		70F4C29AC0874E118372377F /* Build configuration list for PBXNativeTarget "LiveActivity" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				232ED5139C7F49D083304737 /* Debug */,
+				B69EC8C1E59D4A32A9942123 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;

@@ -61,18 +61,18 @@ class ReactNativeDelegate: ExpoReactNativeFactoryDelegate {
   }
 
   override func bundleURL() -> URL? {
-#if DEBUG
-    // Prefer embedded bundle from Xcode build; fall back to Metro for live dev.
+    // Prefer an embedded JS bundle. Do not fall back to Metro on device.
     if let embedded = Bundle.main.url(forResource: "main", withExtension: "jsbundle") {
       return embedded
     }
-    #if targetEnvironment(simulator)
-    return URL(string: "http://127.0.0.1:8081/.expo/.virtual-metro-entry.bundle?platform=ios&dev=true")
-    #else
-    return RCTBundleURLProvider.sharedSettings().jsBundleURL(forBundleRoot: ".expo/.virtual-metro-entry")
+
+    #if DEBUG
+    // In Debug, we still require bundling for reliable device builds.
+    // If you intended to use Metro, start it and use Expo Dev Client to open the app.
+    NSLog("[AppDelegate] main.jsbundle missing from app bundle. To run on device without Metro, rebuild after bundling (e.g., set FORCE_BUNDLING=1 or run a bundling script). If you want Metro, start it and open via expo start --dev-client.")
     #endif
-#else
-    return Bundle.main.url(forResource: "main", withExtension: "jsbundle")
-#endif
+
+    // Hard fail: returning nil ensures React Native surfaces a clear error when the bundle is missing.
+    return nil
   }
 }
