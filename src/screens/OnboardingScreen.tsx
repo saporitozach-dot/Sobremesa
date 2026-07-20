@@ -21,6 +21,7 @@ import OnboardingScene from '../components/OnboardingScene';
 import StepIndicator from '../components/StepIndicator';
 import { ChevronRight } from '../components/icons/FeatureIcon';
 import { useReducedMotion } from '../hooks/useReducedMotion';
+import { hapticMedium, hapticSelection, hapticSuccess } from '../services/haptics';
 import { text } from '../theme/typography';
 import { colors, gradients, layout, motion, spacing, type as typeScale } from '../theme';
 
@@ -45,9 +46,10 @@ const STEPS: StepConfig[] = [
     body: 'Start a phone-down session. Your phone is still there when you need it.',
   },
   {
-    kicker: 'Ready when you arrive',
-    title: 'We’ll meet you there.',
-    body: 'Allow location for a quiet invitation at partner restaurants.',
+    kicker: 'A quiet reward',
+    title: 'Earn stamps. Unlock a treat.',
+    body: 'Finish a session. Collect stamps. A partner reward waits.',
+    footnote: 'Next, allow location so we can greet you at partners.',
   },
 ];
 
@@ -156,11 +158,13 @@ export default function OnboardingScreen() {
     await Location.requestBackgroundPermissionsAsync();
     await Notifications.requestPermissionsAsync();
     setLoading(false);
+    hapticSuccess();
     await completeOnboarding();
     permissionRequestPending.current = false;
   };
 
   const openSettings = () => {
+    hapticSelection();
     Linking.openSettings();
   };
 
@@ -173,6 +177,12 @@ export default function OnboardingScreen() {
     transitionId.current += 1;
     const id = transitionId.current;
     activeAnimation.current?.stop();
+
+    if (delta > 0) {
+      hapticMedium();
+    } else {
+      hapticSelection();
+    }
 
     setStep(next);
     AccessibilityInfo.announceForAccessibility(`Onboarding step ${next + 1} of ${STEPS.length}`);

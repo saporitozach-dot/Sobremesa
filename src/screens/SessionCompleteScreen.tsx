@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 import Svg, { Circle } from 'react-native-svg';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -8,6 +8,7 @@ import { RootStackParamList } from '../../App';
 import Button from '../components/Button';
 import StaggeredFadeIn from '../components/StaggeredFadeIn';
 import { FeatureIcon } from '../components/icons/FeatureIcon';
+import { hapticSuccess } from '../services/haptics';
 import { text } from '../theme/typography';
 import { colors, fonts, gradients, layout, radius, shadows, spacing, type } from '../theme';
 
@@ -28,6 +29,10 @@ export default function SessionCompleteScreen({ navigation, route }: Props) {
   const stroke = 5;
   const ringRadius = (ringSize - stroke) / 2;
   const circumference = 2 * Math.PI * ringRadius;
+
+  useEffect(() => {
+    hapticSuccess();
+  }, []);
 
   return (
     <LinearGradient

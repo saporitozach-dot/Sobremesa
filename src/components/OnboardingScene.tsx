@@ -237,14 +237,16 @@ function PresenceDetails({
   );
 }
 
-function ArrivalDetails({
+function RewardDetails({
   centerX,
   centerY,
   placeOffset,
   plateRadius,
   tableRY,
 }: SceneGeometry) {
-  const pinY = centerY - tableRY * 0.72;
+  const stampY = centerY + tableRY * 0.08;
+  const stampGap = plateRadius * 0.92;
+  const stampR = plateRadius * 0.28;
 
   return (
     <>
@@ -259,47 +261,38 @@ function ArrivalDetails({
         radius={plateRadius}
       />
       <Path
-        d={`M ${centerX} ${centerY + tableRY * 1.02}
-          C ${centerX} ${centerY + tableRY * 0.7},
-            ${centerX - plateRadius * 1.1} ${centerY + tableRY * 0.58},
-            ${centerX - plateRadius * 0.78} ${centerY + tableRY * 0.28}
-          C ${centerX - plateRadius * 0.58} ${centerY + tableRY * 0.08},
-            ${centerX - plateRadius * 0.18} ${pinY + plateRadius * 0.6},
-            ${centerX} ${pinY + plateRadius * 0.48}`}
+        d={`M ${centerX - stampGap * 1.35} ${stampY + stampR * 1.8}
+          C ${centerX - stampGap * 0.4} ${stampY + stampR * 2.35},
+            ${centerX + stampGap * 0.4} ${stampY + stampR * 2.35},
+            ${centerX + stampGap * 1.35} ${stampY + stampR * 1.8}`}
         fill="none"
         stroke={colors.primarySoft}
-        strokeDasharray="5 9"
         strokeLinecap="round"
       />
-      <Path
-        d={`M ${centerX} ${pinY - plateRadius * 0.58}
-          C ${centerX - plateRadius * 0.54} ${pinY - plateRadius * 0.58},
-            ${centerX - plateRadius * 0.82} ${pinY - plateRadius * 0.2},
-            ${centerX - plateRadius * 0.82} ${pinY + plateRadius * 0.18}
-          C ${centerX - plateRadius * 0.82} ${pinY + plateRadius * 0.78},
-            ${centerX} ${pinY + plateRadius * 1.35},
-            ${centerX} ${pinY + plateRadius * 1.35}
-          C ${centerX} ${pinY + plateRadius * 1.35},
-            ${centerX + plateRadius * 0.82} ${pinY + plateRadius * 0.78},
-            ${centerX + plateRadius * 0.82} ${pinY + plateRadius * 0.18}
-          C ${centerX + plateRadius * 0.82} ${pinY - plateRadius * 0.2},
-            ${centerX + plateRadius * 0.54} ${pinY - plateRadius * 0.58},
-            ${centerX} ${pinY - plateRadius * 0.58} Z`}
-        fill={colors.primaryMuted}
-        stroke={colors.primary}
-        strokeWidth="1.5"
-      />
-      <Circle cx={centerX} cy={pinY + plateRadius * 0.12} r={plateRadius * 0.22} fill={colors.success} />
-      <Circle cx={centerX} cy={pinY + plateRadius * 0.12} r={plateRadius * 0.08} fill={colors.bgDeep} />
-      <Path
-        d={`M ${centerX - plateRadius * 1.2} ${centerY + tableRY * 0.48}
-          C ${centerX - plateRadius * 0.48} ${centerY + tableRY * 0.62},
-            ${centerX + plateRadius * 0.48} ${centerY + tableRY * 0.62},
-            ${centerX + plateRadius * 1.2} ${centerY + tableRY * 0.48}`}
-        fill="none"
-        stroke={colors.primaryDark}
-        strokeLinecap="round"
-      />
+      {[-1, 0, 1].map((slot) => {
+        const filled = slot < 1;
+        const x = centerX + slot * stampGap;
+        return (
+          <G key={`stamp-${slot}`}>
+            <Circle
+              cx={x}
+              cy={stampY}
+              r={stampR}
+              fill={filled ? colors.primaryMuted : 'none'}
+              stroke={filled ? colors.primary : colors.border}
+              strokeWidth="1.5"
+            />
+            {filled ? (
+              <Circle
+                cx={x}
+                cy={stampY}
+                r={stampR * 0.34}
+                fill={colors.primary}
+              />
+            ) : null}
+          </G>
+        );
+      })}
     </>
   );
 }
@@ -405,7 +398,7 @@ export default function OnboardingScene({ progress, isWide }: Props) {
         <PresenceDetails {...geometry} />
       </SceneLayer>
       <SceneLayer opacity={arrivalOpacity} translateX={arrivalX} geometry={geometry}>
-        <ArrivalDetails {...geometry} />
+        <RewardDetails {...geometry} />
       </SceneLayer>
     </View>
   );

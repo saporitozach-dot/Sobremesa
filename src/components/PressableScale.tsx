@@ -1,20 +1,25 @@
 import React, { useEffect, useRef } from 'react';
 import { Animated, Pressable, PressableProps } from 'react-native';
 import { useReducedMotion } from '../hooks/useReducedMotion';
+import { hapticLight } from '../services/haptics';
 import { motion } from '../theme';
 
 type Props = PressableProps & {
   children: React.ReactNode;
   scaleTo?: number;
+  /** Soft tap feedback. Defaults on; set false for purely decorative presses. */
+  haptic?: boolean;
   style?: PressableProps['style'];
 };
 
 export default function PressableScale({
   children,
   scaleTo = motion.pressScale,
+  haptic = true,
   style,
   onPressIn,
   onPressOut,
+  disabled,
   ...rest
 }: Props) {
   const reduceMotion = useReducedMotion();
@@ -46,8 +51,12 @@ export default function PressableScale({
   return (
     <Pressable
       {...rest}
+      disabled={disabled}
       style={style}
       onPressIn={(e) => {
+        if (!disabled && haptic) {
+          hapticLight();
+        }
         animatePress(true);
         onPressIn?.(e);
       }}
