@@ -1,228 +1,153 @@
 import React, { useEffect, useRef, useState } from 'react';
 import {
+  AccessibilityInfo,
   Animated,
-  Dimensions,
   Easing,
   Linking,
+  ScrollView,
   StyleSheet,
   Text,
   View,
+  useWindowDimensions,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import * as Notifications from 'expo-notifications';
 import * as Location from 'expo-location';
 import { useApp } from '../context/AppContext';
-import BrandHeader from '../components/BrandHeader';
 import Button from '../components/Button';
-import StaggeredFadeIn from '../components/StaggeredFadeIn';
+import Logo from '../components/Logo';
+import OnboardingScene from '../components/OnboardingScene';
 import StepIndicator from '../components/StepIndicator';
-import { FeatureIcon, FeatureIconName } from '../components/icons/FeatureIcon';
+import { ChevronRight } from '../components/icons/FeatureIcon';
+import { useReducedMotion } from '../hooks/useReducedMotion';
 import { text } from '../theme/typography';
-import { colors, fonts, layout, motion, radius, spacing } from '../theme';
+import { colors, gradients, layout, motion, spacing, type as typeScale } from '../theme';
 
-const EASE_IN = Easing.bezier(0.4, 0, 1, 1);
-const EASE_OUT = Easing.bezier(0.22, 1, 0.36, 1);
-
-/** Vertical anchor — slide 3 sits low, inside the ambient glow above the footer */
-const ANCHOR_FRACTIONS = [0.04, 0.34, 0.5] as const;
+const EASE_OUT = Easing.bezier(...motion.easing.out);
 
 type StepConfig = {
   kicker: string;
   title: string;
   body: string;
   footnote?: string;
-  icon: FeatureIconName;
-  showBrand: boolean;
 };
 
 const STEPS: StepConfig[] = [
   {
-    kicker: 'Welcome in',
-    title: 'Be here, together',
-    body: 'Sobremesa helps you put the phone away and connect with the people at your table.',
-    icon: 'dining',
-    showBrand: true,
+    kicker: 'Welcome to the table',
+    title: 'Be here for the meal.',
+    body: 'Put your phone down. Stay with the people around you.',
   },
   {
-    kicker: 'The idea',
-    title: 'Phone-free meals',
-    body: 'Stay present through the meal — conversation, not scrolling.',
-    icon: 'reward',
-    showBrand: false,
+    kicker: 'A small ritual',
+    title: 'Set it down. Stay awhile.',
+    body: 'Start a phone-down session. Your phone is still there when you need it.',
   },
   {
-    kicker: 'How it works',
-    title: 'We meet you at the table',
-    body: '',
-    icon: 'setup',
-    showBrand: false,
+    kicker: 'Ready when you arrive',
+    title: 'We’ll meet you there.',
+    body: 'Allow location for a quiet invitation at partner restaurants.',
   },
 ];
 
-const FLOW_STEPS = [
-  'Arrive at a partner restaurant',
-  'Start a phone-free session',
-  'Earn stamps toward rewards',
-];
+type SlideProps = StepConfig & {
+  isWide: boolean;
+  copyLift: Animated.Value;
+};
 
-type SlideProps = StepConfig & { step: number; isLast?: boolean };
-
-function OnboardingSlide({ kicker, title, body, footnote, icon, showBrand, step, isLast }: SlideProps) {
-  if (isLast) {
-    return (
-      <View style={styles.slide}>
-        <View style={styles.glowCluster}>
-          <View style={styles.glowRing} pointerEvents="none" />
-
-          <StaggeredFadeIn index={0} trigger={step} distance={8}>
-            <Text style={text.kicker}>{kicker}</Text>
-          </StaggeredFadeIn>
-
-          <StaggeredFadeIn index={1} trigger={step} scale style={styles.iconWrapTight}>
-            <View style={styles.iconCircle}>
-              <FeatureIcon name={icon} size={32} />
-            </View>
-          </StaggeredFadeIn>
-
-          <StaggeredFadeIn index={2} trigger={step} style={styles.copyWrap}>
-            <Text style={[text.titleBold, styles.centerText, styles.titleGapTight]}>{title}</Text>
-          </StaggeredFadeIn>
-
-          <StaggeredFadeIn index={3} trigger={step} distance={8} style={styles.flowWrap}>
-            {FLOW_STEPS.map((line, i) => (
-              <View key={line} style={styles.flowRow}>
-                <View style={styles.flowDot}>
-                  <Text style={styles.flowNum}>{i + 1}</Text>
-                </View>
-                <Text style={styles.flowText}>{line}</Text>
-              </View>
-            ))}
-          </StaggeredFadeIn>
-        </View>
-      </View>
-    );
-  }
-
+function OnboardingSlide({
+  kicker,
+  title,
+  body,
+  footnote,
+  isWide,
+  copyLift,
+}: SlideProps) {
   return (
-    <View style={styles.slide}>
-      <StaggeredFadeIn index={0} trigger={step} distance={8}>
-        <Text style={text.kicker}>{kicker}</Text>
-      </StaggeredFadeIn>
-
-      {showBrand ? (
-        <StaggeredFadeIn index={1} trigger={step} scale style={styles.brandWrap}>
-          <BrandHeader size="md" animate />
-        </StaggeredFadeIn>
-      ) : (
-        <StaggeredFadeIn index={1} trigger={step} scale style={styles.iconWrap}>
-          <View style={styles.iconCircle}>
-            <FeatureIcon name={icon} size={34} />
-          </View>
-        </StaggeredFadeIn>
-      )}
-
-      <StaggeredFadeIn index={2} trigger={step} style={styles.copyWrap}>
-        <Text style={[text.titleBold, styles.centerText, styles.titleGap]}>{title}</Text>
-      </StaggeredFadeIn>
-
-      <StaggeredFadeIn index={3} trigger={step} distance={10} style={styles.copyWrap}>
-        <Text style={[text.bodyMuted, styles.centerText]}>{body}</Text>
-      </StaggeredFadeIn>
-
-      {footnote ? (
-        <StaggeredFadeIn index={4} trigger={step} distance={8} style={styles.copyWrap}>
-          <Text style={[styles.footnote, styles.centerText]}>{footnote}</Text>
-        </StaggeredFadeIn>
-      ) : null}
+    <View style={[styles.slide, isWide && styles.slideWide]}>
+      <Animated.View
+        style={[
+          styles.copyWrap,
+          isWide && styles.copyWrapWide,
+          {
+            transform: [{ translateY: copyLift }],
+          },
+        ]}
+      >
+        <Text style={styles.kicker}>{kicker}</Text>
+        <Text style={[styles.title, isWide && styles.textWide]}>{title}</Text>
+        <Text style={[styles.body, isWide && styles.textWide]}>{body}</Text>
+        {footnote ? <Text style={[styles.footnote, isWide && styles.textWide]}>{footnote}</Text> : null}
+      </Animated.View>
     </View>
   );
+}
+
+function settleVisible(
+  contentX: Animated.Value,
+  contentFade: Animated.Value,
+  copyLift: Animated.Value,
+) {
+  contentX.setValue(0);
+  contentFade.setValue(1);
+  copyLift.setValue(0);
 }
 
 export default function OnboardingScreen() {
   const { completeOnboarding } = useApp();
   const insets = useSafeAreaInsets();
+  const reduceMotion = useReducedMotion();
+  const { width } = useWindowDimensions();
   const [step, setStep] = useState(0);
   const [loading, setLoading] = useState(false);
   const [permissionBlocked, setPermissionBlocked] = useState(false);
-  const [stageHeight, setStageHeight] = useState(0);
-
-  const contentY = useRef(new Animated.Value(0)).current;
+  const contentX = useRef(new Animated.Value(0)).current;
   const contentFade = useRef(new Animated.Value(1)).current;
-  const glowY = useRef(new Animated.Value(0)).current;
-  const lineHeight = useRef(new Animated.Value(0)).current;
-  const lineOpacity = useRef(new Animated.Value(0.35)).current;
-
-  const screenH = Dimensions.get('window').height;
-  const screenW = Dimensions.get('window').width;
-  const glowSize = screenH * 0.42;
-  const glowLeft = (screenW - glowSize) / 2;
-
-  const moveToAnchor = (nextStep: number, animateContent = true) => {
-    if (stageHeight <= 0) return;
-
-    const targetY = stageHeight * ANCHOR_FRACTIONS[nextStep] + insets.top * 0.12;
-    const glowTarget =
-      nextStep === STEPS.length - 1
-        ? stageHeight * 0.48
-        : stageHeight * (0.1 + nextStep * 0.28);
-
-    const moves = [
-      Animated.spring(contentY, {
-        toValue: targetY,
-        useNativeDriver: true,
-        damping: 22,
-        stiffness: 170,
-        mass: 0.85,
-      }),
-      Animated.spring(glowY, {
-        toValue: glowTarget,
-        useNativeDriver: true,
-        damping: 24,
-        stiffness: 140,
-      }),
-      Animated.timing(lineHeight, {
-        toValue: ((nextStep + 1) / STEPS.length) * stageHeight * 0.72,
-        duration: motion.slow,
-        easing: EASE_OUT,
-        useNativeDriver: false,
-      }),
-      Animated.timing(lineOpacity, {
-        toValue: 0.35 + nextStep * 0.2,
-        duration: motion.normal,
-        useNativeDriver: false,
-      }),
-    ];
-
-    if (animateContent) {
-      Animated.parallel(moves).start();
-    } else {
-      contentY.setValue(targetY);
-      glowY.setValue(glowTarget);
-      lineHeight.setValue(((nextStep + 1) / STEPS.length) * stageHeight * 0.72);
-      lineOpacity.setValue(0.35 + nextStep * 0.2);
-    }
-  };
+  const copyLift = useRef(new Animated.Value(0)).current;
+  const sceneProgress = useRef(new Animated.Value(0)).current;
+  const stepRef = useRef(0);
+  const transitionId = useRef(0);
+  const permissionRequestPending = useRef(false);
+  const activeAnimation = useRef<Animated.CompositeAnimation | null>(null);
+  const isWide = width >= layout.onboardingWideBreakpoint;
 
   useEffect(() => {
-    if (stageHeight > 0) {
-      moveToAnchor(step, false);
-      Animated.timing(contentFade, {
-        toValue: 1,
-        duration: motion.slow,
-        easing: EASE_OUT,
-        useNativeDriver: true,
-      }).start();
+    activeAnimation.current?.stop();
+    if (reduceMotion) {
+      settleVisible(contentX, contentFade, copyLift);
+      sceneProgress.setValue(stepRef.current);
+      return undefined;
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [stageHeight]);
+
+    contentFade.setValue(1);
+    contentX.setValue(0);
+    copyLift.setValue(motion.enterDistance);
+    const entrance = Animated.spring(copyLift, {
+      toValue: 0,
+      delay: motion.stagger,
+      useNativeDriver: true,
+      ...motion.chapterSpring,
+    });
+    activeAnimation.current = entrance;
+    entrance.start();
+    return () => entrance.stop();
+  }, [contentFade, contentX, copyLift, reduceMotion, sceneProgress]);
+
+  useEffect(() => () => {
+    transitionId.current += 1;
+    activeAnimation.current?.stop();
+  }, []);
 
   const requestPermissions = async () => {
+    if (permissionRequestPending.current) return;
+    permissionRequestPending.current = true;
     setLoading(true);
     setPermissionBlocked(false);
 
     const foreground = await Location.requestForegroundPermissionsAsync();
     if (foreground.status !== 'granted') {
+      permissionRequestPending.current = false;
       setLoading(false);
       setPermissionBlocked(true);
       return;
@@ -232,27 +157,71 @@ export default function OnboardingScreen() {
     await Notifications.requestPermissionsAsync();
     setLoading(false);
     await completeOnboarding();
+    permissionRequestPending.current = false;
   };
 
   const openSettings = () => {
     Linking.openSettings();
   };
 
-  const goToStep = (next: number) => {
-    Animated.timing(contentFade, {
-      toValue: 0,
-      duration: motion.fast,
-      easing: EASE_IN,
-      useNativeDriver: true,
-    }).start(() => {
-      setStep(next);
-      moveToAnchor(next);
+  const moveStep = (delta: -1 | 1) => {
+    const next = Math.max(0, Math.min(STEPS.length - 1, stepRef.current + delta));
+    if (next === stepRef.current) return;
+
+    const direction = delta;
+    stepRef.current = next;
+    transitionId.current += 1;
+    const id = transitionId.current;
+    activeAnimation.current?.stop();
+
+    setStep(next);
+    AccessibilityInfo.announceForAccessibility(`Onboarding step ${next + 1} of ${STEPS.length}`);
+
+    if (reduceMotion) {
+      settleVisible(contentX, contentFade, copyLift);
+      sceneProgress.setValue(next);
+      return;
+    }
+
+    // Enter-only chapter change: new copy arrives from the travel direction while the
+    // full-bleed scene morphs in parallel. Opacity never rests at 0 (interrupt-safe).
+    contentX.setValue(direction * motion.chapterDistance);
+    contentFade.setValue(motion.chapterEnterOpacity);
+    copyLift.setValue(motion.enterDistance);
+
+    const entrance = Animated.parallel([
+      Animated.spring(contentX, {
+        toValue: 0,
+        useNativeDriver: true,
+        ...motion.chapterSpring,
+      }),
       Animated.timing(contentFade, {
         toValue: 1,
+        duration: motion.normal,
+        easing: EASE_OUT,
+        useNativeDriver: true,
+      }),
+      Animated.spring(copyLift, {
+        toValue: 0,
+        delay: motion.stagger / 2,
+        useNativeDriver: true,
+        ...motion.chapterSpring,
+      }),
+      Animated.timing(sceneProgress, {
+        toValue: next,
         duration: motion.slow,
         easing: EASE_OUT,
         useNativeDriver: true,
-      }).start();
+      }),
+    ]);
+    activeAnimation.current = entrance;
+    entrance.start(({ finished }) => {
+      if (id !== transitionId.current) return;
+      if (!finished) {
+        settleVisible(contentX, contentFade, copyLift);
+        return;
+      }
+      settleVisible(contentX, contentFade, copyLift);
     });
   };
 
@@ -261,72 +230,52 @@ export default function OnboardingScreen() {
   return (
     <View style={styles.root}>
       <LinearGradient
-        colors={[colors.bgDeep, '#0D1612', colors.bg, colors.bgDeep]}
+        colors={gradients.ambient}
         locations={[0, 0.35, 0.7, 1]}
         style={StyleSheet.absoluteFill}
       />
+      <OnboardingScene progress={sceneProgress} isWide={isWide} />
 
-      {/* Ambient warmth — drifts down as you progress */}
-      <Animated.View
-        pointerEvents="none"
-        style={[
-          styles.glow,
-          {
-            left: glowLeft,
-            width: glowSize,
-            height: glowSize,
-            borderRadius: glowSize / 2,
-            transform: [{ translateY: glowY }],
-          },
-        ]}
-      />
-
-      {/* Journey line — grows as you descend into the experience */}
-      <View style={[styles.journeyTrack, { top: insets.top + spacing.xxl }]}>
-        <Animated.View
-          style={[
-            styles.journeyLine,
-            {
-              height: lineHeight,
-              opacity: lineOpacity,
-            },
-          ]}
-        />
-        {STEPS.map((_, i) => (
+      <View style={[styles.progress, { paddingTop: insets.top + spacing.md }]}>
+        <View style={styles.brandRow}>
           <View
-            key={i}
-            style={[
-              styles.journeyNode,
-              {
-                top: stageHeight * ANCHOR_FRACTIONS[i] * 0.72,
-                backgroundColor: i <= step ? colors.primary : colors.border,
-                borderColor: i <= step ? colors.primary : colors.border,
-              },
-            ]}
-          />
-        ))}
+            accessible
+            accessibilityRole="image"
+            accessibilityLabel="Sobremesa"
+            style={styles.brand}
+          >
+            <Logo variant="emblem" theme="dark" size="sm" />
+            <Text style={styles.brandName}>Sobremesa</Text>
+          </View>
+          <Text style={styles.progressCount}>0{step + 1} / 0{STEPS.length}</Text>
+        </View>
+        <View style={styles.progressMeta}>
+          <Text style={styles.progressLabel}>YOUR FIRST SOBREMESA</Text>
+        </View>
+        <StepIndicator total={STEPS.length} current={step} />
       </View>
 
-      <View
-        style={[styles.stage, { paddingTop: insets.top }]}
-        onLayout={(e) => setStageHeight(e.nativeEvent.layout.height)}
+      <ScrollView
+        style={styles.stage}
+        contentContainerStyle={styles.stageContent}
+        showsVerticalScrollIndicator={false}
       >
-        <View style={styles.indicatorWrap}>
-          <StepIndicator total={STEPS.length} current={step} />
-        </View>
-
         <Animated.View
           style={[
             styles.contentSlot,
             {
               opacity: contentFade,
-              transform: [{ translateY: contentY }],
+              transform: [{ translateX: contentX }],
             },
           ]}
         >
-          <OnboardingSlide key={step} step={step} isLast={step === STEPS.length - 1} {...current} />
+          <OnboardingSlide
+            isWide={isWide}
+            copyLift={copyLift}
+            {...current}
+          />
         </Animated.View>
-      </View>
+      </ScrollView>
 
       <View style={[styles.footer, { paddingBottom: insets.bottom + spacing.md }]}>
         {permissionBlocked ? (
@@ -335,13 +284,29 @@ export default function OnboardingScreen() {
             <Text style={styles.blockedBody}>
               Sobremesa uses your location only at partner restaurants — to know when you have arrived and invite you into a session.
             </Text>
-            <Button label="Open Settings" onPress={openSettings} />
+            <Button label="Open settings" onPress={openSettings} />
             <Button label="Try again" variant="ghost" onPress={requestPermissions} loading={loading} />
           </View>
-        ) : step < STEPS.length - 1 ? (
-          <Button label="Continue" onPress={() => goToStep(step + 1)} />
         ) : (
-          <Button label="Enter Sobremesa" onPress={requestPermissions} loading={loading} />
+          <View style={styles.footerActions}>
+            {step > 0 ? (
+              <Button
+                label="Back"
+                variant="ghost"
+                fullWidth={false}
+                style={styles.backAction}
+                onPress={() => moveStep(-1)}
+              />
+            ) : null}
+            <Button
+              label={step < STEPS.length - 1 ? 'Continue' : 'Allow & enter'}
+              fullWidth={false}
+              style={styles.primaryAction}
+              trailingIcon={<ChevronRight color={colors.bgDeep} />}
+              loading={loading}
+              onPress={step < STEPS.length - 1 ? () => moveStep(1) : requestPermissions}
+            />
+          </View>
         )}
       </View>
     </View>
@@ -353,150 +318,101 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: colors.bgDeep,
   },
-  glow: {
-    position: 'absolute',
-    top: -80,
-    backgroundColor: colors.primary,
-    opacity: 0.09,
+  progress: {
+    width: '100%',
+    maxWidth: layout.onboardingMaxWidth,
+    alignSelf: 'center',
+    paddingHorizontal: layout.screenPadding,
   },
-  journeyTrack: {
-    position: 'absolute',
-    left: layout.screenPadding,
-    width: 2,
-    bottom: 210,
+  brandRow: {
+    minHeight: layout.compactControlHeight,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: spacing.md,
   },
-  journeyLine: {
-    position: 'absolute',
-    left: 0,
-    width: 2,
-    backgroundColor: colors.primary,
-    borderRadius: 1,
+  brand: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.sm,
   },
-  journeyNode: {
-    position: 'absolute',
-    left: -4,
-    width: 10,
-    height: 10,
-    borderRadius: 5,
-    borderWidth: 1,
+  brandName: {
+    ...text.brand,
+    fontSize: typeScale.heading,
+  },
+  progressMeta: {
+    marginBottom: spacing.sm,
+  },
+  progressLabel: {
+    ...text.caption,
+    color: colors.textSubtle,
+  },
+  progressCount: {
+    ...text.caption,
+    color: colors.primary,
+    letterSpacing: 0.6,
   },
   stage: {
     flex: 1,
   },
-  indicatorWrap: {
-    alignItems: 'center',
-    paddingTop: spacing.sm,
-    paddingBottom: spacing.md,
+  stageContent: {
+    flexGrow: 1,
+    justifyContent: 'center',
+    paddingHorizontal: layout.screenPadding,
+    paddingVertical: spacing.lg,
   },
   contentSlot: {
-    position: 'absolute',
-    left: layout.screenPadding,
-    right: layout.screenPadding,
+    width: '100%',
+    maxWidth: layout.onboardingMaxWidth,
+    alignSelf: 'center',
     alignItems: 'center',
   },
   slide: {
     width: '100%',
-    maxWidth: layout.maxContentWidth,
     alignItems: 'center',
+  },
+  slideWide: {
+    alignItems: 'flex-start',
+    paddingRight: '54%',
   },
   kicker: {
-    marginBottom: spacing.md,
+    ...text.kicker,
+    marginBottom: spacing.lg,
     textAlign: 'center',
-  },
-  brandWrap: {
-    marginBottom: spacing.lg,
-  },
-  iconWrap: {
-    alignItems: 'center',
-    marginBottom: spacing.lg,
-  },
-  iconCircle: {
-    width: 68,
-    height: 68,
-    borderRadius: radius.pill,
-    backgroundColor: colors.primaryMuted,
-    borderWidth: 1,
-    borderColor: colors.primary,
-    alignItems: 'center',
-    justifyContent: 'center',
   },
   copyWrap: {
     width: '100%',
+    maxWidth: layout.readableCopyWidth,
     alignItems: 'center',
   },
-  centerText: {
+  copyWrapWide: {
+    maxWidth: layout.authFormWidth,
+    alignItems: 'flex-start',
+  },
+  title: {
+    ...text.display,
     textAlign: 'center',
-    maxWidth: 320,
+    marginBottom: spacing.lg,
   },
-  titleGap: {
-    marginBottom: spacing.sm,
-  },
-  titleGapTight: {
-    marginBottom: spacing.md,
-  },
-  glowCluster: {
-    width: '100%',
-    alignItems: 'center',
-    paddingHorizontal: spacing.lg,
-    paddingTop: spacing.xl,
-    paddingBottom: spacing.lg,
-  },
-  glowRing: {
-    position: 'absolute',
-    top: 0,
-    width: 300,
-    height: 300,
-    borderRadius: 150,
-    backgroundColor: 'rgba(212, 175, 90, 0.1)',
-    borderWidth: 1,
-    borderColor: 'rgba(212, 175, 90, 0.22)',
-  },
-  iconWrapTight: {
-    alignItems: 'center',
-    marginBottom: spacing.md,
-  },
-  flowWrap: {
-    width: '100%',
-    gap: spacing.sm,
-    paddingTop: spacing.xs,
-  },
-  flowRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: spacing.md,
-    width: '100%',
-    maxWidth: 280,
-  },
-  flowDot: {
-    width: 26,
-    height: 26,
-    borderRadius: 13,
-    backgroundColor: colors.primaryMuted,
-    borderWidth: 1,
-    borderColor: colors.primary,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  flowNum: {
-    color: colors.primary,
-    fontSize: 12,
-    fontFamily: fonts.sansSemibold,
-  },
-  flowText: {
-    ...text.small,
-    color: colors.text,
-    flex: 1,
-    lineHeight: 20,
+  body: {
+    ...text.bodyMuted,
+    textAlign: 'center',
   },
   footnote: {
     ...text.small,
-    color: colors.textMuted,
+    color: colors.textSubtle,
     marginTop: spacing.md,
-    lineHeight: 20,
+    textAlign: 'center',
+  },
+  textWide: {
+    textAlign: 'left',
   },
   blocked: {
     gap: spacing.sm,
     alignItems: 'stretch',
+    width: '100%',
+    maxWidth: layout.maxContentWidth,
+    alignSelf: 'center',
   },
   blockedTitle: {
     ...text.heading,
@@ -513,8 +429,19 @@ const styles = StyleSheet.create({
   footer: {
     paddingHorizontal: layout.screenPadding,
     paddingTop: spacing.md,
-    borderTopWidth: StyleSheet.hairlineWidth,
-    borderTopColor: colors.borderLight,
-    backgroundColor: 'rgba(10, 16, 13, 0.92)',
+  },
+  footerActions: {
+    width: '100%',
+    maxWidth: layout.maxContentWidth,
+    alignSelf: 'center',
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.sm,
+  },
+  backAction: {
+    minWidth: spacing.xxxl * 2,
+  },
+  primaryAction: {
+    flex: 1,
   },
 });
