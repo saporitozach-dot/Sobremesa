@@ -2,7 +2,7 @@ import React from 'react';
 import { StyleSheet, View, ViewStyle } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { colors, layout, spacing } from '../theme';
+import { colors, gradients, layout, spacing } from '../theme';
 
 type Layout = 'default' | 'auth' | 'centered';
 
@@ -63,7 +63,7 @@ export default function Screen({
 
   if (gradient) {
     return (
-      <LinearGradient colors={[colors.bg, colors.bgDeep]} style={styles.root}>
+      <LinearGradient colors={gradients.screen} style={styles.root}>
         {inner}
       </LinearGradient>
     );
@@ -96,7 +96,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     // Nudge brand cluster slightly above geometric center so it
     // looks balanced against the bottom CTA block (standard app pattern).
-    paddingBottom: 56,
+    paddingBottom: spacing.xxxl + spacing.sm,
   },
   contentCentered: {
     flex: 1,

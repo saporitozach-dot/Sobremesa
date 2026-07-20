@@ -1,5 +1,5 @@
-import React from 'react';
-import { StyleSheet, Text } from 'react-native';
+import React, { useState } from 'react';
+import { Alert, StyleSheet, Text } from 'react-native';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../../App';
 import { useApp } from '../context/AppContext';
@@ -14,6 +14,7 @@ type Props = NativeStackScreenProps<RootStackParamList, 'RedeemVoucher'>;
 export default function RedeemVoucherScreen({ navigation, route }: Props) {
   const { vouchers, redeemVoucher } = useApp();
   const voucher = vouchers.find((v) => v.id === route.params.voucherId);
+  const [redeeming, setRedeeming] = useState(false);
 
   if (!voucher) {
     return (
@@ -31,10 +32,29 @@ export default function RedeemVoucherScreen({ navigation, route }: Props) {
         <>
           {!voucher.redeemedAt ? (
             <Button
-              label="Mark redeemed"
-              onPress={async () => {
-                await redeemVoucher(voucher.id);
-                navigation.goBack();
+              label="Redeem with server"
+              loading={redeeming}
+              onPress={() => {
+                Alert.alert(
+                  'Redeem this voucher?',
+                  'Continue only when your server is ready to accept the reward. This cannot be undone in the demo.',
+                  [
+                    { text: 'Not yet', style: 'cancel' },
+                    {
+                      text: 'Redeem',
+                      style: 'destructive',
+                      onPress: async () => {
+                        setRedeeming(true);
+                        try {
+                          await redeemVoucher(voucher.id);
+                          navigation.goBack();
+                        } finally {
+                          setRedeeming(false);
+                        }
+                      },
+                    },
+                  ],
+                );
               }}
             />
           ) : null}
@@ -53,6 +73,9 @@ export default function RedeemVoucherScreen({ navigation, route }: Props) {
               ? 'Redeemed'
               : `Expires ${new Date(voucher.expiresAt).toLocaleDateString()}`}
           </Text>
+          {!voucher.redeemedAt ? (
+            <Text style={styles.note}>Keep this screen open and show it to your server.</Text>
+          ) : null}
         </Card>
       </FadeSlideIn>
     </Screen>
@@ -88,4 +111,11 @@ const styles = StyleSheet.create({
     marginTop: spacing.md,
   },
   meta: { color: colors.textMuted, fontSize: type.small, fontFamily: fonts.sans, marginTop: spacing.xs },
+  note: {
+    color: colors.textMuted,
+    fontSize: type.small,
+    fontFamily: fonts.sans,
+    textAlign: 'center',
+    marginTop: spacing.md,
+  },
 });

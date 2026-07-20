@@ -1,5 +1,5 @@
 import React from 'react';
-import { StyleSheet, View } from 'react-native';
+import { StyleSheet, Text, View } from 'react-native';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { RootStackParamList } from '../../App';
@@ -7,8 +7,10 @@ import BrandHeader from '../components/BrandHeader';
 import Button from '../components/Button';
 import FadeSlideIn from '../components/FadeSlideIn';
 import VideoBackground from '../components/VideoBackground';
+import { ChevronRight } from '../components/icons/FeatureIcon';
 import { LANDING_VIDEO, LANDING_VIDEO_RATE } from '../config/landingVideo';
-import { colors, layout, spacing } from '../theme';
+import { text } from '../theme/typography';
+import { colors, layout, motion, spacing } from '../theme';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'Auth'>;
 
@@ -26,17 +28,24 @@ export default function AuthScreen({ navigation }: Props) {
         ]}
       >
         <View style={styles.hero}>
-          <FadeSlideIn delay={80} distance={16} trigger="auth-brand">
-            <BrandHeader size="lg" animate />
+          <FadeSlideIn delay={motion.stagger} trigger="auth-brand">
+            <View style={styles.heroContent}>
+              <BrandHeader size="lg" animate />
+              <View style={styles.rule} />
+              <Text style={[text.title, styles.heroLine]}>
+                Put the phone down. Stay for what matters.
+              </Text>
+            </View>
           </FadeSlideIn>
         </View>
 
-        <FadeSlideIn delay={280} distance={24} trigger="auth-footer">
+        <FadeSlideIn delay={motion.stagger * 3} distance={motion.directionalDistance} trigger="auth-footer">
           <View style={styles.actions}>
             <Button
               label="Create account"
               onPress={() => navigation.navigate('SignUp')}
               style={styles.button}
+              trailingIcon={<ChevronRight color={colors.bgDeep} />}
             />
             <Button
               label="Log in"
@@ -64,10 +73,24 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    paddingBottom: 56,
+    paddingBottom: spacing.xxxl + spacing.sm,
     maxWidth: layout.maxContentWidth,
     alignSelf: 'center',
     width: '100%',
+  },
+  heroContent: {
+    alignItems: 'center',
+  },
+  rule: {
+    width: spacing.xxxl,
+    height: StyleSheet.hairlineWidth,
+    backgroundColor: colors.primary,
+    marginTop: spacing.xl,
+    marginBottom: spacing.lg,
+  },
+  heroLine: {
+    maxWidth: layout.readableCopyWidth,
+    textAlign: 'center',
   },
   actions: {
     gap: spacing.sm,
@@ -81,7 +104,7 @@ const styles = StyleSheet.create({
   },
   buttonSecondary: {
     minHeight: 52,
-    backgroundColor: 'rgba(18, 28, 23, 0.72)',
-    borderColor: 'rgba(212, 175, 90, 0.28)',
+    backgroundColor: colors.authButton,
+    borderColor: colors.primarySoft,
   },
 });

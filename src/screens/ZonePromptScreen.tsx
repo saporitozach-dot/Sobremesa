@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { Animated, StyleSheet, Text, View } from 'react-native';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -7,8 +7,9 @@ import { getRestaurant } from '../data/restaurants';
 import { useApp } from '../context/AppContext';
 import Button from '../components/Button';
 import FadeSlideIn from '../components/FadeSlideIn';
-import { FeatureIcon } from '../components/icons/FeatureIcon';
-import { colors, fonts, layout, motion, radius, shadows, spacing, type } from '../theme';
+import { ChevronRight, FeatureIcon } from '../components/icons/FeatureIcon';
+import { text } from '../theme/typography';
+import { colors, layout, motion, radius, shadows, spacing } from '../theme';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'ZonePrompt'>;
 
@@ -16,6 +17,7 @@ export default function ZonePromptScreen({ navigation }: Props) {
   const { pendingRestaurantId, activeZone, settings, startSession, dismissZonePrompt } = useApp();
   const insets = useSafeAreaInsets();
   const slide = useRef(new Animated.Value(300)).current;
+  const [starting, setStarting] = useState(false);
   const restaurantId = pendingRestaurantId ?? activeZone?.restaurantId;
   const restaurant = restaurantId ? getRestaurant(restaurantId) : undefined;
 
@@ -55,14 +57,22 @@ export default function ZonePromptScreen({ navigation }: Props) {
         </FadeSlideIn>
         <Button
           label="Start session"
+          loading={starting}
+          trailingIcon={<ChevronRight color={colors.bgDeep} />}
           onPress={async () => {
-            await startSession();
-            navigation.replace('Locked');
+            setStarting(true);
+            try {
+              await startSession();
+              navigation.replace('Locked');
+            } finally {
+              setStarting(false);
+            }
           }}
         />
         <Button
           label="Not now"
           variant="ghost"
+          disabled={starting}
           onPress={() => {
             dismissZonePrompt();
             navigation.goBack();
@@ -90,16 +100,16 @@ const styles = StyleSheet.create({
     ...shadows.card,
   },
   handle: {
-    width: 32,
-    height: 3,
-    borderRadius: 2,
+    width: spacing.xxl,
+    height: spacing.xs,
+    borderRadius: radius.pill,
     backgroundColor: colors.border,
     marginBottom: spacing.sm,
   },
   body: { alignItems: 'center', width: '100%' },
   iconCircle: {
-    width: 52,
-    height: 52,
+    width: layout.controlHeight,
+    height: layout.controlHeight,
     borderRadius: radius.pill,
     backgroundColor: colors.primaryMuted,
     borderWidth: 1,
@@ -109,27 +119,18 @@ const styles = StyleSheet.create({
     marginBottom: spacing.md,
   },
   kicker: {
-    color: colors.primary,
-    fontSize: type.caption,
-    fontFamily: fonts.sansMedium,
-    textTransform: 'uppercase',
-    letterSpacing: 1.5,
+    ...text.kicker,
     marginBottom: spacing.xs,
   },
   title: {
-    color: colors.text,
-    fontSize: type.title,
-    fontFamily: fonts.serifBold,
+    ...text.titleBold,
     textAlign: 'center',
-    letterSpacing: -0.3,
     marginBottom: spacing.xs,
   },
   copy: {
-    color: colors.textMuted,
-    fontSize: type.small,
-    fontFamily: fonts.sans,
+    ...text.small,
     textAlign: 'center',
     marginBottom: spacing.md,
-    maxWidth: 280,
+    maxWidth: layout.compactCopyWidth,
   },
 });

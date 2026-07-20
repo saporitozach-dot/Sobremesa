@@ -10,6 +10,7 @@ import FadeSlideIn from '../components/FadeSlideIn';
 import RestaurantCard from '../components/RestaurantCard';
 import ScreenHeader from '../components/ScreenHeader';
 import ScreenList from '../components/ScreenList';
+import SectionLabel from '../components/SectionLabel';
 import { FeatureIcon } from '../components/icons/FeatureIcon';
 import { text } from '../theme/typography';
 import { colors, radius, spacing } from '../theme';
@@ -69,17 +70,23 @@ export default function HomeScreen({ navigation }: Props) {
       ) : null}
 
       {!activeSession && !arrivedRestaurantId ? (
-        <FadeSlideIn trigger="empty-state">
-          <View style={styles.emptyState}>
-            <FeatureIcon name="dining" size={32} />
-            <Text style={text.heading}>
-              {settings.monitoringEnabled ? 'Waiting for arrival' : 'Monitoring is off'}
-            </Text>
-            <Text style={text.bodyMuted}>
-              {settings.monitoringEnabled
-                ? "We'll notify you when you arrive at a partner restaurant."
-                : 'Turn on background monitoring in Settings to detect partner restaurants.'}
-            </Text>
+        <FadeSlideIn trigger="arrival-status">
+          <View style={styles.statusPanel}>
+            <View style={styles.statusRow}>
+              <View style={styles.statusIcon}>
+                <FeatureIcon name="dining" size={28} />
+              </View>
+              <View style={styles.statusCopy}>
+                <Text style={text.heading}>
+                  {settings.monitoringEnabled ? 'Ready when you arrive' : 'Arrival detection is off'}
+                </Text>
+                <Text style={text.bodyMuted}>
+                  {settings.monitoringEnabled
+                    ? "We'll send a quiet invitation at a partner restaurant."
+                    : 'Turn on background monitoring to receive arrival invitations.'}
+                </Text>
+              </View>
+            </View>
             {!settings.monitoringEnabled ? (
               <Button
                 label="Open settings"
@@ -91,6 +98,7 @@ export default function HomeScreen({ navigation }: Props) {
           </View>
         </FadeSlideIn>
       ) : null}
+      <SectionLabel>Partner restaurants</SectionLabel>
     </View>
   );
 
@@ -112,6 +120,7 @@ export default function HomeScreen({ navigation }: Props) {
             restaurant={item}
             stampCount={stampCountFor(item.id)}
             variant={item.id === arrivedRestaurantId && !activeSession ? 'arrived' : 'default'}
+            showTopDivider={index === 0}
             onPress={() => {
               if (item.id === arrivedRestaurantId && !activeSession) {
                 navigation.navigate('ZonePrompt');
@@ -141,15 +150,31 @@ const styles = StyleSheet.create({
     padding: spacing.md,
     marginBottom: spacing.md,
   },
-  emptyState: {
-    alignItems: 'center',
+  statusPanel: {
     backgroundColor: colors.surface,
     borderRadius: radius.lg,
     borderWidth: 1,
     borderColor: colors.border,
     padding: spacing.xl,
     marginBottom: spacing.md,
-    gap: spacing.sm,
+    gap: spacing.md,
+  },
+  statusRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.md,
+  },
+  statusIcon: {
+    width: 48,
+    height: 48,
+    borderRadius: radius.pill,
+    backgroundColor: colors.primaryMuted,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  statusCopy: {
+    flex: 1,
+    gap: spacing.xs,
   },
   emptyBtn: {
     marginTop: spacing.sm,

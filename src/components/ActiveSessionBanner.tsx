@@ -25,16 +25,27 @@ export default function ActiveSessionBanner({ session, onPress }: Props) {
   }, [session.startedAt]);
 
   const remaining = Math.max(goalSeconds - elapsed, 0);
+  const progress = Math.min(elapsed / goalSeconds, 1);
 
   return (
-    <PressableScale style={styles.banner} onPress={onPress} accessibilityLabel="Return to active session">
+    <PressableScale
+      style={styles.banner}
+      onPress={onPress}
+      accessibilityLabel="Return to active session"
+      accessibilityRole="button"
+    >
       <View style={styles.dot} />
       <View style={styles.content}>
         <Text style={text.kicker}>Session in progress</Text>
         <Text style={text.heading}>{session.restaurantName}</Text>
         <Text style={text.small}>
-          {formatMinutes(elapsed)} elapsed · {formatMinutes(remaining)} left
+          {remaining > 0
+            ? `${formatMinutes(elapsed)} elapsed · ${formatMinutes(remaining)} left`
+            : 'Finishing your session…'}
         </Text>
+        <View style={styles.track}>
+          <View style={[styles.fill, { width: `${progress * 100}%` }]} />
+        </View>
       </View>
       <ChevronRight size={16} color={colors.primary} />
     </PressableScale>
@@ -60,4 +71,16 @@ const styles = StyleSheet.create({
     backgroundColor: colors.primary,
   },
   content: { flex: 1, gap: 2 },
+  track: {
+    height: spacing.xs,
+    borderRadius: radius.pill,
+    backgroundColor: colors.border,
+    overflow: 'hidden',
+    marginTop: spacing.xs,
+  },
+  fill: {
+    height: '100%',
+    borderRadius: radius.pill,
+    backgroundColor: colors.primary,
+  },
 });

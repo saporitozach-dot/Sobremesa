@@ -9,11 +9,11 @@ export const text = StyleSheet.create({
     letterSpacing: -0.4,
   },
   display: {
-    fontFamily: fonts.serifBold,
+    fontFamily: fonts.serif,
     fontSize: type.display,
     color: colors.text,
-    letterSpacing: -0.5,
-    lineHeight: 34,
+    letterSpacing: -0.35,
+    lineHeight: 36,
   },
   title: {
     fontFamily: fonts.serif,
@@ -46,6 +46,13 @@ export const text = StyleSheet.create({
     fontSize: type.body,
     color: colors.textMuted,
     lineHeight: 22,
+  },
+  formLabel: {
+    fontFamily: fonts.sansMedium,
+    fontSize: type.small,
+    color: colors.text,
+    lineHeight: 20,
+    letterSpacing: 0.1,
   },
   small: {
     fontFamily: fonts.sans,

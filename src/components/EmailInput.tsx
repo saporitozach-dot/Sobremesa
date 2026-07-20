@@ -11,7 +11,7 @@ import {
 import TextField from './TextField';
 import { colors, fonts, radius, spacing, type } from '../theme';
 
-const DOMAINS = ['gmail.com', 'icloud.com', 'outlook.com', 'yahoo.com', 'iu.edu', 'hotmail.com'];
+const DOMAINS = ['gmail.com', 'icloud.com', 'outlook.com', 'yahoo.com', 'hotmail.com'];
 
 function suggestionsFor(email: string): string[] {
   const at = email.indexOf('@');
@@ -29,10 +29,12 @@ type Props = Omit<TextInputProps, 'value' | 'onChangeText'> & {
   value: string;
   onChangeText: (text: string) => void;
   fieldIndex?: number;
+  helperText?: string;
+  error?: string;
 };
 
 const EmailInput = forwardRef<TextInput, Props>(function EmailInput(
-  { label, value, onChangeText, fieldIndex, ...rest },
+  { label, value, onChangeText, fieldIndex, helperText, error, ...rest },
   ref,
 ) {
   const suggestions = useMemo(() => suggestionsFor(value), [value]);
@@ -44,6 +46,8 @@ const EmailInput = forwardRef<TextInput, Props>(function EmailInput(
         ref={ref}
         label={label}
         fieldIndex={fieldIndex}
+        helperText={helperText}
+        error={error}
         autoCapitalize="none"
         autoCorrect={false}
         keyboardType="email-address"

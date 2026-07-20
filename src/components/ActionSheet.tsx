@@ -3,6 +3,7 @@ import {
   Animated,
   Modal,
   Pressable,
+  ScrollView,
   StyleSheet,
   Text,
   View,
@@ -38,9 +39,20 @@ export default function ActionSheet({ visible, title, onClose, children, style }
   }, [visible, slide, fade]);
 
   return (
-    <Modal visible={visible} transparent animationType="none" onRequestClose={onClose}>
-      <View style={styles.root}>
-        <Pressable style={StyleSheet.absoluteFill} onPress={onClose} accessibilityLabel="Close">
+    <Modal
+      visible={visible}
+      transparent
+      animationType="none"
+      onRequestClose={onClose}
+      statusBarTranslucent
+    >
+      <View style={styles.root} accessibilityViewIsModal>
+        <Pressable
+          style={StyleSheet.absoluteFill}
+          onPress={onClose}
+          accessibilityLabel="Close"
+          accessibilityRole="button"
+        >
           <Animated.View style={[styles.backdrop, { opacity: fade }]} />
         </Pressable>
         <Animated.View
@@ -52,7 +64,13 @@ export default function ActionSheet({ visible, title, onClose, children, style }
         >
           <View style={styles.handle} />
           {title ? <Text style={[text.titleBold, styles.title]}>{title}</Text> : null}
-          <View style={styles.body}>{children}</View>
+          <ScrollView
+            style={styles.scroll}
+            contentContainerStyle={styles.body}
+            showsVerticalScrollIndicator={false}
+          >
+            {children}
+          </ScrollView>
         </Animated.View>
       </View>
     </Modal>
@@ -95,8 +113,12 @@ const styles = StyleSheet.create({
   },
   body: {
     gap: spacing.sm,
+    paddingBottom: spacing.xs,
+  },
+  scroll: {
     width: '100%',
     maxWidth: layout.maxContentWidth,
+    maxHeight: '78%',
     alignSelf: 'center',
   },
 });

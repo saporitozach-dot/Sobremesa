@@ -2,7 +2,8 @@ import React, { useCallback, useRef, useState } from 'react';
 import { Animated, Platform, StyleSheet, View, ViewStyle } from 'react-native';
 import { Video, ResizeMode, AVPlaybackSource, AVPlaybackStatus } from 'expo-av';
 import { LinearGradient } from 'expo-linear-gradient';
-import { colors, motion } from '../theme';
+import { useReducedMotion } from '../hooks/useReducedMotion';
+import { colors, gradients, motion } from '../theme';
 
 type Props = {
   source: AVPlaybackSource;
@@ -15,12 +16,13 @@ type Props = {
 
 export default function VideoBackground({ source, style, dim = 0.78, rate = 1 }: Props) {
   const videoRef = useRef<Video>(null);
+  const reduceMotion = useReducedMotion();
   const fade = useRef(new Animated.Value(0)).current;
   const rateApplied = useRef(false);
   const [failed, setFailed] = useState(false);
 
   const applyRate = useCallback(async () => {
-    if (rate === 1 || failed) return;
+    if (rate === 1 || failed || reduceMotion) return;
     const video = videoRef.current;
     if (!video) return;
 
@@ -34,7 +36,7 @@ export default function VideoBackground({ source, style, dim = 0.78, rate = 1 }:
     } catch {
       // Retry on next status tick if the native player is not ready yet.
     }
-  }, [failed, rate]);
+  }, [failed, rate, reduceMotion]);
 
   const onStatus = (status: AVPlaybackStatus) => {
     if (!status.isLoaded || failed) return;
@@ -69,12 +71,13 @@ export default function VideoBackground({ source, style, dim = 0.78, rate = 1 }:
             resizeMode={ResizeMode.COVER}
             isLooping
             isMuted
-            shouldPlay
+            shouldPlay={!reduceMotion}
             rate={rate}
             shouldCorrectPitch={false}
             onPlaybackStatusUpdate={onStatus}
             onLoad={() => {
               rateApplied.current = false;
+              if (reduceMotion) fade.setValue(1);
               void applyRate();
             }}
             onError={() => setFailed(true)}
@@ -88,12 +91,7 @@ export default function VideoBackground({ source, style, dim = 0.78, rate = 1 }:
 
       {/* Vignette: darker top + bottom for legibility */}
       <LinearGradient
-        colors={[
-          'rgba(8, 12, 10, 0.92)',
-          'rgba(8, 12, 10, 0.45)',
-          'rgba(8, 12, 10, 0.55)',
-          'rgba(8, 12, 10, 0.94)',
-        ]}
+        colors={gradients.vignette}
         locations={[0, 0.35, 0.65, 1]}
         style={StyleSheet.absoluteFill}
       />

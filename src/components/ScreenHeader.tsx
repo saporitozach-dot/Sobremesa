@@ -5,7 +5,7 @@ import FadeSlideIn from './FadeSlideIn';
 import PressableScale from './PressableScale';
 import { ChevronRight, SettingsIcon } from './icons/FeatureIcon';
 import { text } from '../theme/typography';
-import { colors, layout, radius, spacing } from '../theme';
+import { colors, layout, radius, spacing, type } from '../theme';
 
 type Props = {
   kicker?: string;
@@ -32,7 +32,13 @@ export default function ScreenHeader({
     <FadeSlideIn trigger={`${kicker}-${title}`} style={[styles.wrap, { paddingTop: insets.top + spacing.md }, style]}>
       <View style={styles.row}>
         {onBackPress ? (
-          <PressableScale onPress={onBackPress} style={styles.backBtn} accessibilityLabel="Go back">
+          <PressableScale
+            onPress={onBackPress}
+            style={styles.backBtn}
+            accessibilityLabel="Go back"
+            accessibilityRole="button"
+            hitSlop={layout.hitSlop}
+          >
             <View style={styles.backChevron}>
               <ChevronRight size={16} color={colors.primary} />
             </View>
@@ -40,7 +46,7 @@ export default function ScreenHeader({
         ) : null}
         <View style={[styles.text, onBackPress && styles.textWithBack]}>
           {kicker ? <Text style={text.kicker}>{kicker}</Text> : null}
-          <Text style={text.titleBold}>{title}</Text>
+          <Text style={[text.titleBold, styles.title]}>{title}</Text>
           {subtitle ? <Text style={[text.small, styles.subtitle]}>{subtitle}</Text> : null}
         </View>
         {rightAction ??
@@ -49,6 +55,8 @@ export default function ScreenHeader({
               onPress={onSettingsPress}
               style={styles.iconBtn}
               accessibilityLabel="Settings"
+              accessibilityRole="button"
+              hitSlop={layout.hitSlop}
             >
               <SettingsIcon size={20} color={colors.primary} />
             </PressableScale>
@@ -75,10 +83,14 @@ const styles = StyleSheet.create({
   },
   text: { flex: 1, gap: 2 },
   textWithBack: { paddingLeft: spacing.xs },
+  title: {
+    fontSize: type.display,
+    lineHeight: 34,
+  },
   subtitle: { marginTop: spacing.xs },
   backBtn: {
-    width: 40,
-    height: 40,
+    width: layout.compactControlHeight,
+    height: layout.compactControlHeight,
     borderRadius: radius.pill,
     backgroundColor: colors.surface,
     alignItems: 'center',
@@ -89,8 +101,8 @@ const styles = StyleSheet.create({
   },
   backChevron: { transform: [{ rotate: '180deg' }] },
   iconBtn: {
-    width: 40,
-    height: 40,
+    width: layout.compactControlHeight,
+    height: layout.compactControlHeight,
     borderRadius: radius.pill,
     backgroundColor: colors.surface,
     alignItems: 'center',
@@ -98,5 +110,5 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: colors.border,
   },
-  iconSpacer: { width: 40 },
+  iconSpacer: { width: layout.compactControlHeight },
 });

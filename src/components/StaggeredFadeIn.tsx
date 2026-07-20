@@ -1,8 +1,9 @@
 import React, { useEffect, useRef } from 'react';
-import { Animated, Easing, ViewStyle } from 'react-native';
+import { Animated, Easing, StyleSheet, ViewStyle } from 'react-native';
+import { useReducedMotion } from '../hooks/useReducedMotion';
 import { motion } from '../theme';
 
-const EASE_OUT = Easing.bezier(0.22, 1, 0.36, 1);
+const EASE_OUT = Easing.bezier(...motion.easing.out);
 
 type Props = {
   children: React.ReactNode;
@@ -19,21 +20,27 @@ export default function StaggeredFadeIn({
   children,
   index = 0,
   delay: delayOverride,
-  distance = 14,
+  distance = motion.enterDistance,
   duration = motion.slow,
   style,
   trigger,
   scale = false,
 }: Props) {
+  const reduceMotion = useReducedMotion();
   const opacity = useRef(new Animated.Value(0)).current;
   const translateY = useRef(new Animated.Value(distance)).current;
-  const scaleVal = useRef(new Animated.Value(scale ? 0.9 : 1)).current;
-  const delay = delayOverride ?? index * 72;
+  const scaleVal = useRef(new Animated.Value(scale ? motion.emphasisScale : 1)).current;
+  const delay = delayOverride ?? index * motion.stagger;
 
   useEffect(() => {
     opacity.setValue(0);
-    translateY.setValue(distance);
-    if (scale) scaleVal.setValue(0.9);
+    translateY.setValue(reduceMotion ? 0 : distance);
+    if (scale) scaleVal.setValue(reduceMotion ? 1 : motion.emphasisScale);
+
+    if (reduceMotion) {
+      opacity.setValue(1);
+      return undefined;
+    }
 
     const animations: Animated.CompositeAnimation[] = [
       Animated.timing(opacity, {
@@ -58,23 +65,30 @@ export default function StaggeredFadeIn({
           toValue: 1,
           delay,
           useNativeDriver: true,
-          damping: 19,
-          stiffness: 210,
-          mass: 0.65,
+          ...motion.spring,
         }),
       );
     }
 
-    Animated.parallel(animations).start();
-  }, [delay, distance, duration, opacity, scale, scaleVal, translateY, trigger]);
+    const animation = Animated.parallel(animations);
+    animation.start();
+
+    return () => animation.stop();
+  }, [delay, distance, duration, opacity, reduceMotion, scale, scaleVal, translateY, trigger]);
 
   const transform = scale
     ? [{ translateY }, { scale: scaleVal }]
     : [{ translateY }];
 
   return (
-    <Animated.View style={[{ opacity, transform }, style]}>
+    <Animated.View pointerEvents="box-none" style={[styles.wrap, { opacity, transform }, style]}>
       {children}
     </Animated.View>
   );
 }
+
+const styles = StyleSheet.create({
+  wrap: {
+    alignSelf: 'stretch',
+  },
+});

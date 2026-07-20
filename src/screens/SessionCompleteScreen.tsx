@@ -1,5 +1,5 @@
-import React, { useEffect, useRef } from 'react';
-import { Animated, StyleSheet, Text, View } from 'react-native';
+import React from 'react';
+import { StyleSheet, Text, View } from 'react-native';
 import Svg, { Circle } from 'react-native-svg';
 import { LinearGradient } from 'expo-linear-gradient';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
@@ -9,7 +9,7 @@ import Button from '../components/Button';
 import StaggeredFadeIn from '../components/StaggeredFadeIn';
 import { FeatureIcon } from '../components/icons/FeatureIcon';
 import { text } from '../theme/typography';
-import { colors, fonts, layout, radius, shadows, spacing, type } from '../theme';
+import { colors, fonts, gradients, layout, radius, shadows, spacing, type } from '../theme';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'SessionComplete'>;
 
@@ -24,41 +24,17 @@ export default function SessionCompleteScreen({ navigation, route }: Props) {
   } = route.params;
   const insets = useSafeAreaInsets();
   const progress = stampsRequired > 0 ? stampCount / stampsRequired : 1;
-  const ringSize = 120;
+  const ringSize = layout.stampRingSize;
   const stroke = 5;
   const ringRadius = (ringSize - stroke) / 2;
   const circumference = 2 * Math.PI * ringRadius;
 
-  const glow = useRef(new Animated.Value(0.4)).current;
-  const stampPop = useRef(new Animated.Value(0)).current;
-
-  useEffect(() => {
-    Animated.loop(
-      Animated.sequence([
-        Animated.timing(glow, { toValue: 0.85, duration: 1400, useNativeDriver: true }),
-        Animated.timing(glow, { toValue: 0.4, duration: 1400, useNativeDriver: true }),
-      ]),
-    ).start();
-
-    Animated.spring(stampPop, {
-      toValue: 1,
-      delay: 280,
-      useNativeDriver: true,
-      damping: 14,
-      stiffness: 180,
-      mass: 0.7,
-    }).start();
-  }, [glow, stampPop]);
-
   return (
     <LinearGradient
-      colors={[colors.bg, colors.bgDeep, '#0D1612']}
+      colors={gradients.screen}
       style={[styles.container, { paddingTop: insets.top + spacing.xl, paddingBottom: insets.bottom + spacing.lg }]}
     >
-      <Animated.View
-        pointerEvents="none"
-        style={[styles.glow, { opacity: glow, transform: [{ scale: stampPop }] }]}
-      />
+      <View pointerEvents="none" style={styles.glow} />
 
       <View style={styles.content}>
         <StaggeredFadeIn trigger={restaurantName} index={0} scale distance={16}>
@@ -66,11 +42,9 @@ export default function SessionCompleteScreen({ navigation, route }: Props) {
         </StaggeredFadeIn>
 
         <StaggeredFadeIn trigger={restaurantName} index={1} scale distance={14}>
-          <Animated.View style={{ transform: [{ scale: stampPop }] }}>
-            <View style={styles.iconCircle}>
-              <FeatureIcon name="reward" size={36} />
-            </View>
-          </Animated.View>
+          <View style={styles.iconCircle}>
+            <FeatureIcon name="reward" size={36} />
+          </View>
         </StaggeredFadeIn>
 
         <StaggeredFadeIn trigger={restaurantName} index={2} distance={12}>
@@ -169,10 +143,11 @@ const styles = StyleSheet.create({
     position: 'absolute',
     top: '18%',
     alignSelf: 'center',
-    width: 220,
-    height: 220,
-    borderRadius: 110,
+    width: layout.sessionRingSize,
+    height: layout.sessionRingSize,
+    borderRadius: radius.pill,
     backgroundColor: colors.primary,
+    opacity: 0.08,
   },
   content: {
     flex: 1,
@@ -205,7 +180,7 @@ const styles = StyleSheet.create({
   subtitle: {
     ...text.bodyMuted,
     textAlign: 'center',
-    maxWidth: 300,
+    maxWidth: layout.readableCopyWidth,
     marginBottom: spacing.xl,
   },
   cardWrap: {
@@ -240,7 +215,7 @@ const styles = StyleSheet.create({
   },
   stampCount: {
     color: colors.text,
-    fontSize: 28,
+    fontSize: type.display,
     fontFamily: fonts.serifBold,
     letterSpacing: -0.5,
   },
@@ -275,7 +250,7 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     fontFamily: fonts.serif,
     fontStyle: 'italic',
-    maxWidth: 280,
+    maxWidth: layout.compactCopyWidth,
   },
   footer: {
     width: '100%',

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Alert, StyleSheet, Text } from 'react-native';
+import { StyleSheet, Text } from 'react-native';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../../App';
 import { useApp } from '../context/AppContext';
@@ -9,7 +9,8 @@ import FadeSlideIn from '../components/FadeSlideIn';
 import FormHeader from '../components/FormHeader';
 import KeyboardFormScreen from '../components/KeyboardFormScreen';
 import TextField from '../components/TextField';
-import { colors, fonts, spacing, type } from '../theme';
+import { text } from '../theme/typography';
+import { colors, spacing } from '../theme';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'Login'>;
 
@@ -18,17 +19,23 @@ export default function LoginScreen({ navigation, route }: Props) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
+  const [errors, setErrors] = useState<Record<string, string>>({});
+  const [formError, setFormError] = useState('');
 
   const onSubmit = async () => {
-    if (!email.trim() || !password.trim()) {
-      Alert.alert('Missing info', 'Enter your email and password.');
+    const nextErrors: Record<string, string> = {};
+    if (!email.trim()) nextErrors.email = 'Enter your email address.';
+    if (!password.trim()) nextErrors.password = 'Enter your password.';
+    setErrors(nextErrors);
+    setFormError('');
+    if (Object.keys(nextErrors).length > 0) {
       return;
     }
     setLoading(true);
     try {
       await signIn(email.trim(), password);
     } catch (e) {
-      Alert.alert('Login failed', e instanceof Error ? e.message : 'Try again.');
+      setFormError(e instanceof Error ? e.message : 'We could not log you in. Try again.');
     } finally {
       setLoading(false);
     }
@@ -48,21 +55,43 @@ export default function LoginScreen({ navigation, route }: Props) {
       }
     >
       <FadeSlideIn trigger="login">
-        <FormHeader title="Welcome back" subtitle="Pick up where you left off." />
-        <EmailInput fieldIndex={0} label="Email" value={email} onChangeText={setEmail} />
+        <FormHeader
+          kicker="Welcome back"
+          title="Return to the table"
+          subtitle="Log in to see your restaurants, stamps, and rewards."
+        />
+        <EmailInput
+          fieldIndex={0}
+          label="Email address"
+          value={email}
+          onChangeText={(value) => {
+            setEmail(value);
+            setErrors((current) => ({ ...current, email: '' }));
+          }}
+          error={errors.email}
+        />
         <TextField
           fieldIndex={1}
           label="Password"
           secureTextEntry
           value={password}
-          onChangeText={setPassword}
-          placeholder="••••••••"
+          onChangeText={(value) => {
+            setPassword(value);
+            setErrors((current) => ({ ...current, password: '' }));
+          }}
+          error={errors.password}
+          placeholder="Enter your password"
           textContentType="password"
           returnKeyType="done"
           onSubmitEditing={onSubmit}
         />
         {route.params?.prefillPhone ? (
           <Text style={styles.hint}>Phone on file: {route.params.prefillPhone}</Text>
+        ) : null}
+        {formError ? (
+          <Text accessibilityLiveRegion="polite" style={styles.formError}>
+            {formError}
+          </Text>
         ) : null}
       </FadeSlideIn>
     </KeyboardFormScreen>
@@ -71,10 +100,12 @@ export default function LoginScreen({ navigation, route }: Props) {
 
 const styles = StyleSheet.create({
   hint: {
-    color: colors.textMuted,
-    fontSize: type.small,
-    fontFamily: fonts.sans,
-    textAlign: 'center',
+    ...text.small,
+    marginTop: spacing.sm,
+  },
+  formError: {
+    ...text.small,
+    color: colors.danger,
     marginTop: spacing.sm,
   },
 });

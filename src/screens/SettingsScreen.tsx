@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Alert, StyleSheet, Switch, Text, View } from 'react-native';
+import { Alert, Platform, StyleSheet, Switch, Text, View } from 'react-native';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../../App';
 import { useApp } from '../context/AppContext';
@@ -22,6 +22,7 @@ export default function SettingsScreen({ navigation }: Props) {
   const { settings, updateSettings, signOut, simulateArrival } = useApp();
   const [name, setName] = useState('');
   const [phone, setPhone] = useState('');
+  const [addingContact, setAddingContact] = useState(false);
 
   const addContact = async () => {
     if (!name.trim() || !phone.trim()) {
@@ -33,11 +34,31 @@ export default function SettingsScreen({ navigation }: Props) {
       name: name.trim(),
       phone: phone.trim(),
     };
-    await updateSettings({
-      emergencyContacts: [...settings.emergencyContacts, contact],
-    });
-    setName('');
-    setPhone('');
+    setAddingContact(true);
+    try {
+      await updateSettings({
+        emergencyContacts: [...settings.emergencyContacts, contact],
+      });
+      setName('');
+      setPhone('');
+    } finally {
+      setAddingContact(false);
+    }
+  };
+
+  const confirmSignOut = () => {
+    if (Platform.OS === 'web') {
+      const confirmed = window.confirm(
+        'Sign out?\n\nYour local session history and stamp book will stay on this device.',
+      );
+      if (confirmed) void signOut();
+      return;
+    }
+
+    Alert.alert('Sign out?', 'Your local session history and stamp book will stay on this device.', [
+      { text: 'Cancel', style: 'cancel' },
+      { text: 'Sign out', style: 'destructive', onPress: () => void signOut() },
+    ]);
   };
 
   return (
@@ -83,10 +104,11 @@ export default function SettingsScreen({ navigation }: Props) {
               <Button
                 key={g}
                 label={`${g}m`}
-                variant={settings.goalMinutes === g ? 'primary' : 'secondary'}
+                variant="secondary"
                 onPress={() => updateSettings({ goalMinutes: g })}
                 style={styles.goalBtn}
                 fullWidth={false}
+                selected={settings.goalMinutes === g}
               />
             ))}
           </View>
@@ -118,7 +140,12 @@ export default function SettingsScreen({ navigation }: Props) {
               placeholder="Phone"
               keyboardType="phone-pad"
             />
-            <Button label="Add contact" variant="secondary" onPress={addContact} />
+            <Button
+              label="Add contact"
+              variant="secondary"
+              onPress={addContact}
+              loading={addingContact}
+            />
           </View>
         </View>
 
@@ -136,7 +163,7 @@ export default function SettingsScreen({ navigation }: Props) {
 
         <View style={styles.footer}>
           <Button label="Stamp book" variant="ghost" onPress={() => navigation.navigate('Rewards')} />
-          <Button label="Sign out" variant="danger" onPress={signOut} />
+          <Button label="Sign out" variant="danger" onPress={confirmSignOut} />
         </View>
       </FadeSlideIn>
     </ScreenScroll>

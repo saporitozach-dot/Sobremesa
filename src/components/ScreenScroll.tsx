@@ -1,8 +1,8 @@
 import React from 'react';
-import { ScrollView, ScrollViewProps, StyleSheet, View, ViewStyle } from 'react-native';
+import { Platform, ScrollView, ScrollViewProps, StyleSheet, View, ViewStyle } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { colors, layout, spacing } from '../theme';
+import { gradients, layout, spacing } from '../theme';
 
 type Props = ScrollViewProps & {
   children: React.ReactNode;
@@ -20,10 +20,12 @@ export default function ScreenScroll({
   const insets = useSafeAreaInsets();
 
   return (
-    <LinearGradient colors={[colors.bg, colors.bgDeep]} style={styles.root}>
+    <LinearGradient colors={gradients.screen} style={styles.root}>
       <ScrollView
         {...rest}
         showsVerticalScrollIndicator={false}
+        keyboardShouldPersistTaps="handled"
+        keyboardDismissMode={Platform.OS === 'web' ? 'none' : 'on-drag'}
         contentContainerStyle={[
           styles.content,
           {

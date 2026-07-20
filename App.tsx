@@ -12,7 +12,8 @@ import { Text, View } from 'react-native';
 
 import { AppProvider, useApp } from './src/context/AppContext';
 import { useAppFonts } from './src/hooks/useAppFonts';
-import { colors, fonts } from './src/theme';
+import { useReducedMotion } from './src/hooks/useReducedMotion';
+import { colors, fonts, motion } from './src/theme';
 import AuthScreen from './src/screens/AuthScreen';
 import LoginScreen from './src/screens/LoginScreen';
 import SignUpScreen from './src/screens/SignUpScreen';
@@ -119,6 +120,7 @@ SplashScreen.preventAutoHideAsync().catch(() => undefined);
 
 function RootNavigator() {
   const { account, onboarded } = useApp();
+  const reduceMotion = useReducedMotion();
   return (
     <Stack.Navigator
       screenOptions={{
@@ -128,7 +130,8 @@ function RootNavigator() {
         headerShadowVisible: false,
         headerBackTitle: 'Back',
         contentStyle: { backgroundColor: colors.bg },
-        animation: 'slide_from_right',
+        animation: reduceMotion ? 'fade' : 'slide_from_right',
+        animationDuration: reduceMotion ? motion.reduced : motion.normal,
         fullScreenGestureEnabled: true,
       }}
     >
@@ -142,29 +145,29 @@ function RootNavigator() {
           <Stack.Screen
             name="SignUp"
             component={SignUpScreen}
-            options={{ title: 'Sign up', headerBackTitle: 'Back' }}
+            options={{ headerShown: false }}
           />
           <Stack.Screen
             name="Login"
             component={LoginScreen}
-            options={{ title: 'Log in', headerBackTitle: 'Back' }}
+            options={{ headerShown: false }}
           />
           <Stack.Screen
             name="PhoneVerify"
             component={PhoneVerifyScreen}
-            options={{ title: 'Verify phone', headerBackTitle: 'Back' }}
+            options={{ headerShown: false }}
           />
           <Stack.Screen
             name="ForgotPassword"
             component={ForgotPasswordScreen}
-            options={{ title: 'Forgot password', headerBackTitle: 'Back' }}
+            options={{ headerShown: false }}
           />
         </>
       ) : !onboarded ? (
         <Stack.Screen
           name="Onboarding"
           component={OnboardingScreen}
-          options={{ headerShown: false }}
+          options={{ headerShown: false, animation: 'fade' }}
         />
       ) : (
         <>
@@ -181,12 +184,12 @@ function RootNavigator() {
           <Stack.Screen
             name="ZonePrompt"
             component={ZonePromptScreen}
-            options={{ presentation: 'modal', headerShown: false }}
+            options={{ presentation: 'transparentModal', animation: 'fade', headerShown: false }}
           />
           <Stack.Screen
             name="Locked"
             component={LockedModeScreen}
-            options={{ headerShown: false, gestureEnabled: false }}
+            options={{ headerShown: false, gestureEnabled: false, animation: 'fade' }}
           />
           <Stack.Screen
             name="SessionCamera"
@@ -196,7 +199,7 @@ function RootNavigator() {
           <Stack.Screen
             name="SessionComplete"
             component={SessionCompleteScreen}
-            options={{ headerShown: false, gestureEnabled: false }}
+            options={{ headerShown: false, gestureEnabled: false, animation: 'fade' }}
           />
           <Stack.Screen
             name="Settings"
@@ -211,12 +214,12 @@ function RootNavigator() {
           <Stack.Screen
             name="ConfirmRedeem"
             component={ConfirmRedeemScreen}
-            options={{ title: 'Confirm', presentation: 'modal', headerShown: false }}
+            options={{ presentation: 'modal', animation: 'slide_from_bottom', headerShown: false }}
           />
           <Stack.Screen
             name="RedeemVoucher"
             component={RedeemVoucherScreen}
-            options={{ title: 'Voucher', presentation: 'modal' }}
+            options={{ presentation: 'modal', animation: 'slide_from_bottom', headerShown: false }}
           />
         </>
       )}

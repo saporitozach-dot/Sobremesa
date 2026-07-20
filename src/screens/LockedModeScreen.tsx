@@ -1,5 +1,5 @@
-import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { Animated, Linking, StyleSheet, Text, View } from 'react-native';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import { Linking, StyleSheet, Text, View } from 'react-native';
 import Svg, { Circle } from 'react-native-svg';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -13,7 +13,7 @@ import Screen from '../components/Screen';
 import { formatMinutes } from '../utils/format';
 import { updateSessionNotification } from '../services/sessionNotifications';
 import { text } from '../theme/typography';
-import { colors, radius, spacing } from '../theme';
+import { colors, layout, radius, spacing, type } from '../theme';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'Locked'>;
 
@@ -24,7 +24,6 @@ export default function LockedModeScreen({ navigation }: Props) {
   const [elapsed, setElapsed] = useState(0);
   const [sheetOpen, setSheetOpen] = useState(false);
   const [confirmEnd, setConfirmEnd] = useState(false);
-  const pulse = useRef(new Animated.Value(1)).current;
 
   const exitSession = useCallback(() => {
     setConfirmEnd(false);
@@ -56,17 +55,6 @@ export default function LockedModeScreen({ navigation }: Props) {
   }, [activeSession, elapsed, goalSeconds]);
 
   useEffect(() => {
-    const loop = Animated.loop(
-      Animated.sequence([
-        Animated.timing(pulse, { toValue: 1.02, duration: 1600, useNativeDriver: true }),
-        Animated.timing(pulse, { toValue: 1, duration: 1600, useNativeDriver: true }),
-      ]),
-    );
-    loop.start();
-    return () => loop.stop();
-  }, [pulse]);
-
-  useEffect(() => {
     if (elapsed >= goalSeconds && activeSession) {
       completeSession().then((result) => {
         if (result) navigation.replace('SessionComplete', result);
@@ -75,7 +63,7 @@ export default function LockedModeScreen({ navigation }: Props) {
   }, [elapsed, goalSeconds, activeSession, completeSession, navigation]);
 
   const progress = useMemo(() => Math.min(elapsed / goalSeconds, 1), [elapsed, goalSeconds]);
-  const ringSize = 220;
+  const ringSize = layout.sessionRingSize;
   const stroke = 5;
   const ringRadius = (ringSize - stroke) / 2;
   const circumference = 2 * Math.PI * ringRadius;
@@ -118,7 +106,11 @@ export default function LockedModeScreen({ navigation }: Props) {
           Keep Sobremesa open — your phone stays usable for emergencies.
         </Text>
 
-        <Animated.View style={[styles.ringWrap, { transform: [{ scale: pulse }] }]}>
+        <View
+          style={styles.ringWrap}
+          accessible
+          accessibilityLabel={`${Math.round(progress * 100)} percent of session complete`}
+        >
           <Svg width={ringSize} height={ringSize}>
             <Circle
               cx={ringSize / 2}
@@ -146,7 +138,7 @@ export default function LockedModeScreen({ navigation }: Props) {
             <Text style={styles.timer}>{formatMinutes(elapsed)}</Text>
             <Text style={text.small}>of {formatMinutes(goalSeconds)}</Text>
           </View>
-        </Animated.View>
+        </View>
       </FadeSlideIn>
 
       <ActionSheet visible={sheetOpen} title="Need something?" onClose={closeSheet}>
@@ -154,6 +146,8 @@ export default function LockedModeScreen({ navigation }: Props) {
           <PressableScale
             key={c.id}
             style={styles.sheetRow}
+            accessibilityRole="button"
+            accessibilityLabel={`Call ${c.name} at ${c.phone}`}
             onPress={() => {
               closeSheet();
               callEmergency(c.phone);
@@ -222,7 +216,7 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     marginTop: spacing.sm,
     marginBottom: spacing.xl,
-    maxWidth: 280,
+    maxWidth: layout.compactCopyWidth,
     lineHeight: 20,
   },
   ringWrap: {
@@ -233,8 +227,8 @@ const styles = StyleSheet.create({
   ringCenter: { position: 'absolute', alignItems: 'center' },
   timer: {
     ...text.display,
-    fontSize: 40,
-    lineHeight: 44,
+    fontSize: type.hero,
+    lineHeight: type.hero + spacing.sm,
   },
   sheetRow: {
     backgroundColor: colors.surfaceAlt,

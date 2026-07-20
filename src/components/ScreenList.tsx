@@ -2,7 +2,7 @@ import React from 'react';
 import { FlatList, FlatListProps, StyleSheet } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { colors, layout, spacing } from '../theme';
+import { gradients, layout, spacing } from '../theme';
 
 type Props<T> = FlatListProps<T> & {
   header?: React.ReactNode;
@@ -12,11 +12,12 @@ export default function ScreenList<T>({ header, contentContainerStyle, ...rest }
   const insets = useSafeAreaInsets();
 
   return (
-    <LinearGradient colors={[colors.bg, colors.bgDeep]} style={styles.root}>
+    <LinearGradient colors={gradients.screen} style={styles.root}>
       {header}
       <FlatList
         {...rest}
         showsVerticalScrollIndicator={false}
+        keyboardShouldPersistTaps="handled"
         contentContainerStyle={[
           styles.list,
           { paddingBottom: insets.bottom + spacing.xl },
