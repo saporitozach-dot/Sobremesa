@@ -21,7 +21,7 @@ import OnboardingScene from '../components/OnboardingScene';
 import StepIndicator from '../components/StepIndicator';
 import { ChevronRight } from '../components/icons/FeatureIcon';
 import { useReducedMotion } from '../hooks/useReducedMotion';
-import { hapticMedium, hapticSelection, hapticSuccess } from '../services/haptics';
+import { hapticCelebration, hapticMedium, hapticSelection, hapticSuccess } from '../services/haptics';
 import { text } from '../theme/typography';
 import { colors, gradients, layout, motion, spacing, type as typeScale } from '../theme';
 
@@ -112,7 +112,15 @@ export default function OnboardingScreen() {
   const transitionId = useRef(0);
   const permissionRequestPending = useRef(false);
   const activeAnimation = useRef<Animated.CompositeAnimation | null>(null);
+  const celebratedWelcome = useRef(false);
   const isWide = width >= layout.onboardingWideBreakpoint;
+
+  useEffect(() => {
+    if (celebratedWelcome.current) return undefined;
+    celebratedWelcome.current = true;
+    const timer = setTimeout(() => hapticCelebration(), motion.normal);
+    return () => clearTimeout(timer);
+  }, []);
 
   useEffect(() => {
     activeAnimation.current?.stop();

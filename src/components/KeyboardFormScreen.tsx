@@ -1,6 +1,7 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import {
   Keyboard,
+  KeyboardAvoidingView,
   Platform,
   Pressable,
   ScrollView,
@@ -29,8 +30,10 @@ function KeyboardFormScreenInner({ children, footer }: Props) {
   const navigation = useNavigation();
   const route = useRoute();
   const focus = useFormFocus();
-  const [keyboardOpen, setKeyboardOpen] = useState(false);
+  const scrollRef = useRef<ScrollView>(null);
+  const [keyboardHeight, setKeyboardHeight] = useState(0);
   const isWide = width >= layout.authWideBreakpoint;
+  const keyboardOpen = keyboardHeight > 0;
   const screenTitle = {
     SignUp: 'Sign up',
     Login: 'Log in',
@@ -43,11 +46,11 @@ function KeyboardFormScreenInner({ children, footer }: Props) {
 
     const showSub = Keyboard.addListener(
       Platform.OS === 'ios' ? 'keyboardWillShow' : 'keyboardDidShow',
-      () => setKeyboardOpen(true),
+      (event) => setKeyboardHeight(event.endCoordinates.height),
     );
     const hideSub = Keyboard.addListener(
       Platform.OS === 'ios' ? 'keyboardWillHide' : 'keyboardDidHide',
-      () => setKeyboardOpen(false),
+      () => setKeyboardHeight(0),
     );
 
     return () => {
@@ -56,77 +59,105 @@ function KeyboardFormScreenInner({ children, footer }: Props) {
     };
   }, []);
 
-  const showNext = keyboardOpen && focus?.hasNext;
+  // Keep the active field (especially password) above the sticky footer + keyboard.
+  useEffect(() => {
+    if (!keyboardOpen || focus == null || focus.activeIndex < 0) return;
+    const timer = setTimeout(() => {
+      scrollRef.current?.scrollToEnd({ animated: true });
+    }, Platform.OS === 'ios' ? 80 : 120);
+    return () => clearTimeout(timer);
+  }, [focus, focus?.activeIndex, keyboardOpen]);
+
+  const showNext = keyboardOpen && Boolean(focus?.hasNext);
+  // iOS: KeyboardAvoidingView already lifts the footer. Android: nudge it above the keyboard.
+  const footerLift =
+    !isWide && footer && Platform.OS === 'android' ? keyboardHeight : 0;
+  const scrollBottomPad =
+    footer && !isWide
+      ? spacing.xxl + layout.controlHeight + (keyboardOpen ? spacing.xxxl : spacing.lg)
+      : insets.bottom + spacing.xl;
 
   return (
     <LinearGradient colors={[colors.bg, colors.bgDeep]} style={styles.flex}>
-      <View style={[styles.topBar, { paddingTop: insets.top }]}>
-        <Pressable
-          accessibilityRole="button"
-          accessibilityLabel="Go back"
-          hitSlop={layout.hitSlop}
-          onPress={() => navigation.goBack()}
-          style={({ pressed }) => [styles.backButton, pressed && styles.backButtonPressed]}
-        >
-          <View style={styles.backIcon}>
-            <ChevronRight size={type.heading} color={colors.text} />
-          </View>
-        </Pressable>
-        <Text style={styles.topBarTitle}>{screenTitle}</Text>
-      </View>
-      <ScrollView
+      <KeyboardAvoidingView
         style={styles.flex}
-        contentContainerStyle={[
-          styles.scroll,
-          isWide && styles.scrollWide,
-          {
-            paddingBottom:
-              footer && !isWide ? spacing.lg : insets.bottom + spacing.xl,
-          },
-        ]}
-        keyboardShouldPersistTaps="handled"
-        keyboardDismissMode={Platform.OS === 'web' ? 'none' : 'on-drag'}
-        automaticallyAdjustKeyboardInsets={false}
-        showsVerticalScrollIndicator={false}
+        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+        keyboardVerticalOffset={0}
       >
-        <View style={[styles.composition, isWide && styles.compositionWide]}>
-          {isWide ? (
-            <View style={styles.aside}>
-              <BrandHeader size="md" style={styles.brand} />
-              <View style={styles.asideRule} />
-              <Text style={[text.title, styles.asideTitle]}>
-                More time at the table.
-              </Text>
-              <Text style={[text.bodyMuted, styles.asideCopy]}>
-                A quieter way to discover restaurants, put the phone down, and stay present.
-              </Text>
+        <View style={[styles.topBar, { paddingTop: insets.top }]}>
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel="Go back"
+            hitSlop={layout.hitSlop}
+            onPress={() => navigation.goBack()}
+            style={({ pressed }) => [styles.backButton, pressed && styles.backButtonPressed]}
+          >
+            <View style={styles.backIcon}>
+              <ChevronRight size={type.heading} color={colors.text} />
             </View>
-          ) : null}
-          <View style={[styles.form, isWide && styles.formWide]}>
-            {children}
-            {footer && isWide ? <View style={styles.inlineFooter}>{footer}</View> : null}
-          </View>
+          </Pressable>
+          <Text style={styles.topBarTitle}>{screenTitle}</Text>
         </View>
-      </ScrollView>
-
-      {footer && !isWide ? (
-        <View style={[styles.footer, { paddingBottom: insets.bottom + spacing.sm }]}>
-          {showNext ? (
-            <Pressable
-              onPress={() => focus?.focusNext()}
-              hitSlop={8}
-              style={styles.nextRow}
-              accessibilityLabel="Next field"
-            >
-              <Text style={styles.nextLabel}>Next</Text>
-              <View style={styles.nextIcon}>
-                <ChevronRight size={16} color={colors.bgDeep} />
+        <ScrollView
+          ref={scrollRef}
+          style={styles.flex}
+          contentContainerStyle={[
+            styles.scroll,
+            isWide && styles.scrollWide,
+            { paddingBottom: scrollBottomPad },
+          ]}
+          keyboardShouldPersistTaps="handled"
+          keyboardDismissMode={Platform.OS === 'web' ? 'none' : 'interactive'}
+          automaticallyAdjustKeyboardInsets={Platform.OS === 'ios'}
+          showsVerticalScrollIndicator={false}
+        >
+          <View style={[styles.composition, isWide && styles.compositionWide]}>
+            {isWide ? (
+              <View style={styles.aside}>
+                <BrandHeader size="md" style={styles.brand} />
+                <View style={styles.asideRule} />
+                <Text style={[text.title, styles.asideTitle]}>
+                  More time at the table.
+                </Text>
+                <Text style={[text.bodyMuted, styles.asideCopy]}>
+                  A quieter way to discover restaurants, put the phone down, and stay present.
+                </Text>
               </View>
-            </Pressable>
-          ) : null}
-          <View style={styles.footerInner}>{footer}</View>
-        </View>
-      ) : null}
+            ) : null}
+            <View style={[styles.form, isWide && styles.formWide]}>
+              {children}
+              {footer && isWide ? <View style={styles.inlineFooter}>{footer}</View> : null}
+            </View>
+          </View>
+        </ScrollView>
+
+        {footer && !isWide ? (
+          <View
+            style={[
+              styles.footer,
+              {
+                paddingBottom: insets.bottom + spacing.sm,
+                marginBottom: footerLift,
+              },
+            ]}
+          >
+            {showNext ? (
+              <Pressable
+                onPress={() => focus?.focusNext()}
+                hitSlop={8}
+                style={styles.nextRow}
+                accessibilityLabel="Next field"
+              >
+                <Text style={styles.nextLabel}>Next</Text>
+                <View style={styles.nextIcon}>
+                  <ChevronRight size={16} color={colors.bgDeep} />
+                </View>
+              </Pressable>
+            ) : null}
+            <View style={styles.footerInner}>{footer}</View>
+          </View>
+        ) : null}
+      </KeyboardAvoidingView>
     </LinearGradient>
   );
 }

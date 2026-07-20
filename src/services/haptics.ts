@@ -41,3 +41,14 @@ export function hapticSuccess() {
     'success',
   );
 }
+
+/** Short celebration — landing on welcome slide 1. */
+export function hapticCelebration() {
+  run(async () => {
+    await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Soft);
+    await new Promise((resolve) => setTimeout(resolve, 70));
+    await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+    await new Promise((resolve) => setTimeout(resolve, 90));
+    await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+  }, 'celebration');
+}
