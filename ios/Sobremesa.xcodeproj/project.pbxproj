@@ -23,6 +23,7 @@
 		BB2F792D24A3F905000567C9 /* Expo.plist in Resources */ = {isa = PBXBuildFile; fileRef = BB2F792C24A3F905000567C9 /* Expo.plist */; };
 		BF659CE8A7A64D78A3AF9042 /* LiveActivity.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = 42E4410AE7C84FD982F3031F /* LiveActivity.appex */; };
 		C3F28F3B1ACD49CA82968732 /* LiveActivityView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2D87FD3BC9224C59A762D667 /* LiveActivityView.swift */; };
+		CA92B237A115F678D98CEAC3 /* assets in Resources */ = {isa = PBXBuildFile; fileRef = 1ABBFEB0CFBD62317456010D /* assets */; };
 		D278010B13997B2D2D588731 /* ExpoModulesProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = 26BA5ABCE367831B9B7680A7 /* ExpoModulesProvider.swift */; };
 		DF8B9429B2B3E4FD00CD4746 /* libPods-Sobremesa.a in Frameworks */ = {isa = PBXBuildFile; fileRef = D0949AC3801CA08E93CBC984 /* libPods-Sobremesa.a */; };
 		EBAA26F09DD1404AB25CCDAF /* Image+dynamic.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4CF2A4DAEF9245A7813B69E5 /* Image+dynamic.swift */; };
@@ -58,6 +59,7 @@
 		13B07F961A680F5B00A75B9A /* Sobremesa.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Sobremesa.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		13B07FB51A68108700A75B9A /* Images.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; name = Images.xcassets; path = Sobremesa/Images.xcassets; sourceTree = "<group>"; };
 		13B07FB61A68108700A75B9A /* Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; name = Info.plist; path = Sobremesa/Info.plist; sourceTree = "<group>"; };
+		1ABBFEB0CFBD62317456010D /* assets */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = folder; name = assets; path = Sobremesa/assets; sourceTree = "<group>"; };
 		25579A7DFFEE87A8A0D2769B /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xml; name = PrivacyInfo.xcprivacy; path = Sobremesa/PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
 		26BA5ABCE367831B9B7680A7 /* ExpoModulesProvider.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = ExpoModulesProvider.swift; path = "Pods/Target Support Files/Pods-Sobremesa/ExpoModulesProvider.swift"; sourceTree = "<group>"; };
 		2D87FD3BC9224C59A762D667 /* LiveActivityView.swift */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 4; includeInIndex = 0; lastKnownFileType = sourcecode.swift; name = LiveActivityView.swift; path = LiveActivityView.swift; sourceTree = "<group>"; };
@@ -181,6 +183,7 @@
 				99DCB54A7B3D8D535AF515A2 /* Pods */,
 				4F99E702603C8AFA97198F41 /* ExpoModulesProviders */,
 				31D15A6347B54307BE5CD22F /* LiveActivity */,
+				1ABBFEB0CFBD62317456010D /* assets */,
 			);
 			indentWidth = 2;
 			sourceTree = "<group>";
@@ -303,6 +306,7 @@
 				13B07FBF1A68108700A75B9A /* Images.xcassets in Resources */,
 				3E461D99554A48A4959DE609 /* SplashScreen.storyboard in Resources */,
 				11DCB4FB8D9671E0500CEE70 /* PrivacyInfo.xcprivacy in Resources */,
+				CA92B237A115F678D98CEAC3 /* assets in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
