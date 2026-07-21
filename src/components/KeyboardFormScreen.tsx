@@ -29,8 +29,9 @@ function KeyboardFormScreenInner({ children, footer }: Props) {
   const navigation = useNavigation();
   const route = useRoute();
   const focus = useFormFocus();
-  const [keyboardOpen, setKeyboardOpen] = useState(false);
+  const [keyboardHeight, setKeyboardHeight] = useState(0);
   const isWide = width >= layout.authWideBreakpoint;
+  const keyboardOpen = keyboardHeight > 0;
   const screenTitle = {
     SignUp: 'Sign up',
     Login: 'Log in',
@@ -43,11 +44,11 @@ function KeyboardFormScreenInner({ children, footer }: Props) {
 
     const showSub = Keyboard.addListener(
       Platform.OS === 'ios' ? 'keyboardWillShow' : 'keyboardDidShow',
-      () => setKeyboardOpen(true),
+      (event) => setKeyboardHeight(event.endCoordinates.height),
     );
     const hideSub = Keyboard.addListener(
       Platform.OS === 'ios' ? 'keyboardWillHide' : 'keyboardDidHide',
-      () => setKeyboardOpen(false),
+      () => setKeyboardHeight(0),
     );
 
     return () => {
@@ -56,7 +57,9 @@ function KeyboardFormScreenInner({ children, footer }: Props) {
     };
   }, []);
 
-  const showNext = keyboardOpen && focus?.hasNext;
+  const showNext = keyboardOpen && Boolean(focus?.hasNext);
+  // While typing, keep the sticky footer above the keyboard — no auto-scroll jumps.
+  const footerOffset = !isWide && footer ? keyboardHeight : 0;
 
   return (
     <LinearGradient colors={[colors.bg, colors.bgDeep]} style={styles.flex}>
@@ -81,12 +84,14 @@ function KeyboardFormScreenInner({ children, footer }: Props) {
           isWide && styles.scrollWide,
           {
             paddingBottom:
-              footer && !isWide ? spacing.lg : insets.bottom + spacing.xl,
+              footer && !isWide
+                ? spacing.xl + layout.controlHeight
+                : insets.bottom + spacing.xl,
           },
         ]}
         keyboardShouldPersistTaps="handled"
         keyboardDismissMode={Platform.OS === 'web' ? 'none' : 'on-drag'}
-        automaticallyAdjustKeyboardInsets={false}
+        automaticallyAdjustKeyboardInsets={Platform.OS === 'ios'}
         showsVerticalScrollIndicator={false}
       >
         <View style={[styles.composition, isWide && styles.compositionWide]}>
@@ -110,7 +115,15 @@ function KeyboardFormScreenInner({ children, footer }: Props) {
       </ScrollView>
 
       {footer && !isWide ? (
-        <View style={[styles.footer, { paddingBottom: insets.bottom + spacing.sm }]}>
+        <View
+          style={[
+            styles.footer,
+            {
+              paddingBottom: insets.bottom + spacing.sm,
+              marginBottom: footerOffset,
+            },
+          ]}
+        >
           {showNext ? (
             <Pressable
               onPress={() => focus?.focusNext()}

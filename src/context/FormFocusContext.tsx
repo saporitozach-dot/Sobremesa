@@ -16,6 +16,7 @@ type FormFocusContextValue = {
   setActiveIndex: (index: number) => void;
   focusNext: () => void;
   hasNext: boolean;
+  activeIndex: number;
 };
 
 const FormFocusContext = createContext<FormFocusContextValue | null>(null);
@@ -46,8 +47,9 @@ export function FormFocusProvider({ children }: { children: React.ReactNode }) {
       setActiveIndex,
       focusNext,
       hasNext,
+      activeIndex,
     }),
-    [registerField, unregisterField, focusNext, hasNext],
+    [registerField, unregisterField, focusNext, hasNext, activeIndex],
   );
 
   return <FormFocusContext.Provider value={value}>{children}</FormFocusContext.Provider>;
