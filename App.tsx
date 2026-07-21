@@ -179,7 +179,13 @@ function RootNavigator() {
           <Stack.Screen
             name="RestaurantDetail"
             component={RestaurantDetailScreen}
-            options={{ headerShown: false }}
+            options={{
+              headerShown: false,
+              // Quick rise-and-fade: opening a partner should feel like lifting a
+              // card off the list, not pushing sideways into a new section.
+              animation: reduceMotion ? 'fade' : 'fade_from_bottom',
+              animationDuration: reduceMotion ? motion.reduced : motion.fast,
+            }}
           />
           <Stack.Screen
             name="ZonePrompt"

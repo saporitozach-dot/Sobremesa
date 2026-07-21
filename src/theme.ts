@@ -29,6 +29,24 @@ export const colors = {
   cameraVintageOverlay: 'rgba(95, 57, 21, 0.34)',
   cameraFrame: 'rgba(244, 239, 230, 0.2)',
   cameraTimestamp: '#E8D4AF',
+
+  /** Paper stock — the physical stamp card. Warm card colour against the dark app. */
+  paper: '#E9DDC6',
+  paperShade: '#DBCBAE',
+  paperEdge: '#C9B48F',
+  /** Rubber-stamp ink. Never fully black — pressed ink sits slightly transparent. */
+  ink: '#2B4034',
+  inkSoft: 'rgba(43, 64, 52, 0.28)',
+  inkFaint: 'rgba(43, 64, 52, 0.14)',
+
+  /**
+   * Partner accents — each venue gets one so the list reads as a row of different
+   * shops, not repeated rows. Muted enough to sit beside the gold without fighting it.
+   */
+  accentClay: '#C97B5A',
+  accentPlum: '#A87393',
+  accentVine: '#8FA85F',
+  accentSky: '#6F97AE',
 };
 
 export const spacing = {

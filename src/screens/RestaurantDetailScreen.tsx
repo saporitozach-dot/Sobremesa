@@ -9,7 +9,7 @@ import Card from '../components/Card';
 import FadeSlideIn from '../components/FadeSlideIn';
 import ScreenHeader from '../components/ScreenHeader';
 import ScreenScroll from '../components/ScreenScroll';
-import { StampProgressInline } from '../components/StampProgress';
+import StampCard from '../components/StampCard';
 import { text } from '../theme/typography';
 import { colors, fonts, spacing } from '../theme';
 
@@ -48,15 +48,7 @@ export default function RestaurantDetailScreen({ navigation, route }: Props) {
 
         <Text style={[text.body, styles.body]}>{restaurant.description}</Text>
 
-        <Card style={styles.rewardCard}>
-          <Text style={text.kicker}>Reward</Text>
-          <Text style={text.heading}>{restaurant.rewardLabel}</Text>
-          <StampProgressInline
-            current={stamps}
-            required={restaurant.stampsRequired}
-            style={styles.progress}
-          />
-        </Card>
+        <StampCard restaurant={restaurant} current={stamps} style={styles.rewardCard} />
 
         <Button
           label="View stamp book"

@@ -18,3 +18,6 @@ android/app/build/
 
 # Generated JS bundle (rebuild via npm run ios:rebuild)
 ios/Sobremesa/main.jsbundle
+
+# Local agent/editor config (machine-specific paths)
+.claude/

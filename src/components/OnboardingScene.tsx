@@ -27,6 +27,8 @@ type SceneGeometry = {
   tableRY: number;
   placeOffset: number;
   plateRadius: number;
+  /** Place settings sit on the table's near edge, clear of the centred copy. */
+  plateRowY: number;
 };
 
 function PlaceSetting({
@@ -149,38 +151,24 @@ function SceneBase({
 
 function WelcomeDetails({
   centerX,
-  centerY,
   placeOffset,
   plateRadius,
-  tableRY,
+  plateRowY,
 }: SceneGeometry) {
   return (
     <>
-      <PlaceSetting
-        x={centerX - placeOffset}
-        y={centerY + tableRY * 0.08}
-        radius={plateRadius}
-      />
-      <PlaceSetting
-        x={centerX + placeOffset}
-        y={centerY + tableRY * 0.08}
-        radius={plateRadius}
-      />
+      <PlaceSetting x={centerX - placeOffset} y={plateRowY} radius={plateRadius} />
+      <PlaceSetting x={centerX + placeOffset} y={plateRowY} radius={plateRadius} />
       <Path
-        d={`M ${centerX - plateRadius * 1.5} ${centerY + tableRY * 0.08}
-          C ${centerX - plateRadius * 0.72} ${centerY - tableRY * 0.02},
-            ${centerX + plateRadius * 0.72} ${centerY - tableRY * 0.02},
-            ${centerX + plateRadius * 1.5} ${centerY + tableRY * 0.08}`}
+        d={`M ${centerX - plateRadius * 1.5} ${plateRowY}
+          C ${centerX - plateRadius * 0.72} ${plateRowY - plateRadius * 0.5},
+            ${centerX + plateRadius * 0.72} ${plateRowY - plateRadius * 0.5},
+            ${centerX + plateRadius * 1.5} ${plateRowY}`}
         fill="none"
         stroke={colors.primarySoft}
         strokeLinecap="round"
       />
-      <Circle
-        cx={centerX}
-        cy={centerY + tableRY * 0.08}
-        r={plateRadius * 0.12}
-        fill={colors.primary}
-      />
+      <Circle cx={centerX} cy={plateRowY} r={plateRadius * 0.12} fill={colors.primary} />
     </>
   );
 }
@@ -190,22 +178,15 @@ function PresenceDetails({
   centerY,
   placeOffset,
   plateRadius,
+  plateRowY,
   tableRY,
 }: SceneGeometry) {
   const phoneY = centerY + tableRY * 0.5;
 
   return (
     <>
-      <PlaceSetting
-        x={centerX - placeOffset}
-        y={centerY + tableRY * 0.04}
-        radius={plateRadius}
-      />
-      <PlaceSetting
-        x={centerX + placeOffset}
-        y={centerY + tableRY * 0.04}
-        radius={plateRadius}
-      />
+      <PlaceSetting x={centerX - placeOffset} y={plateRowY} radius={plateRadius} />
+      <PlaceSetting x={centerX + placeOffset} y={plateRowY} radius={plateRadius} />
       <Path
         d={`M ${centerX - plateRadius * 0.65} ${phoneY - plateRadius * 0.28}
           L ${centerX + plateRadius * 0.52} ${phoneY - plateRadius * 0.42}
@@ -242,22 +223,15 @@ function ArrivalDetails({
   centerY,
   placeOffset,
   plateRadius,
+  plateRowY,
   tableRY,
 }: SceneGeometry) {
   const pinY = centerY - tableRY * 0.72;
 
   return (
     <>
-      <PlaceSetting
-        x={centerX - placeOffset}
-        y={centerY + tableRY * 0.16}
-        radius={plateRadius}
-      />
-      <PlaceSetting
-        x={centerX + placeOffset}
-        y={centerY + tableRY * 0.16}
-        radius={plateRadius}
-      />
+      <PlaceSetting x={centerX - placeOffset} y={plateRowY} radius={plateRadius} />
+      <PlaceSetting x={centerX + placeOffset} y={plateRowY} radius={plateRadius} />
       <Path
         d={`M ${centerX} ${centerY + tableRY * 1.02}
           C ${centerX} ${centerY + tableRY * 0.7},
@@ -348,9 +322,18 @@ export default function OnboardingScene({ progress, isWide }: Props) {
     centerY,
     tableRX: isWide ? Math.min(width * 0.38, 430) : Math.max(width * 0.76, 286),
     tableRY: isWide ? Math.min(height * 0.34, 270) : Math.min(height * 0.27, 226),
-    placeOffset: isWide ? Math.min(width * 0.2, 215) : Math.max(width * 0.59, 224),
+    // Narrow screens must keep both settings fully on-screen. Pushing them out
+    // clips each plate and leaves only its outer utensil showing, which reads as
+    // a stray rule beside the copy rather than a table.
+    placeOffset: isWide ? Math.min(width * 0.2, 215) : Math.min(width * 0.3, 132),
     plateRadius: isWide ? Math.min(width * 0.055, 54) : Math.max(width * 0.105, 42),
+    plateRowY: 0,
   };
+  // Wide layouts put the copy beside the scene, so settings can stay near the middle.
+  // Narrow layouts stack copy over the table, so they drop to the near edge.
+  geometry.plateRowY = isWide
+    ? centerY + geometry.tableRY * 0.08
+    : centerY + geometry.tableRY * 0.52;
   // Soft overlapping crossfades so the table scene evolves as one continuous chapter.
   const welcomeOpacity = progress.interpolate({
     inputRange: [0, 0.55, 1],

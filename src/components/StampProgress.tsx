@@ -50,7 +50,51 @@ export function StampProgressInline({
   );
 }
 
+/**
+ * Stamps drawn the way a paper loyalty card does — filled marks for what you've
+ * earned, empty rings for what's left. Reads as a card, not a download bar.
+ */
+export function StampDots({
+  current,
+  required,
+  size = 8,
+  color = colors.primary,
+  style,
+}: Omit<Props, 'showBadge'> & { size?: number; color?: string }) {
+  const total = Math.max(required, 0);
+  const earned = Math.min(Math.max(current, 0), total);
+
+  return (
+    <View style={[styles.dotRow, style]} accessibilityElementsHidden>
+      {Array.from({ length: total }, (_, i) => (
+        <View
+          key={i}
+          style={[
+            styles.dot,
+            { width: size, height: size, borderRadius: size / 2 },
+            i < earned
+              ? { backgroundColor: color, borderColor: color }
+              : styles.dotEmpty,
+          ]}
+        />
+      ))}
+    </View>
+  );
+}
+
 const styles = StyleSheet.create({
+  dotRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.xs + 1,
+  },
+  dot: {
+    borderWidth: 1,
+  },
+  dotEmpty: {
+    backgroundColor: 'transparent',
+    borderColor: colors.border,
+  },
   badgeRow: {
     flexDirection: 'row',
     justifyContent: 'flex-end',

@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useCallback, useMemo, useState } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../../App';
@@ -10,15 +10,42 @@ import PressableScale from '../components/PressableScale';
 import ScreenHeader from '../components/ScreenHeader';
 import ScreenList from '../components/ScreenList';
 import SectionLabel from '../components/SectionLabel';
-import { StampProgressInline } from '../components/StampProgress';
+import StampCard from '../components/StampCard';
+import VoucherCard from '../components/VoucherCard';
 import { FeatureIcon } from '../components/icons/FeatureIcon';
 import { text } from '../theme/typography';
-import { colors, fonts, radius, spacing } from '../theme';
+import { colors, fonts, layout, radius, spacing, type } from '../theme';
+import { Voucher } from '../types';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'Rewards'>;
 
 export default function RewardsScreen({ navigation, route }: Props) {
   const { stamps, vouchers } = useApp();
+  const [showRedeemed, setShowRedeemed] = useState(false);
+
+  // A used voucher is history, not something to act on — keep it out of the way.
+  const active = useMemo(() => vouchers.filter((v) => !v.redeemedAt), [vouchers]);
+  const redeemed = useMemo(() => vouchers.filter((v) => v.redeemedAt), [vouchers]);
+
+  const renderVoucher = useCallback(
+    (v: Voucher, i: number) => (
+      <FadeSlideIn key={v.id} delay={i * 50} trigger={v.id}>
+        <PressableScale
+          onPress={() =>
+            navigation.navigate('RedeemVoucher', {
+              voucherId: v.id,
+              returnTo: route.params?.returnTo,
+            })
+          }
+          accessibilityRole="button"
+          accessibilityLabel={`${v.restaurantName} voucher, ${v.redeemedAt ? 'redeemed' : 'available'}`}
+        >
+          <VoucherCard voucher={v} style={styles.card} />
+        </PressableScale>
+      </FadeSlideIn>
+    ),
+    [navigation, route.params?.returnTo],
+  );
 
   return (
     <ScreenList
@@ -36,71 +63,49 @@ export default function RewardsScreen({ navigation, route }: Props) {
         const count = stamps.find((s) => s.restaurantId === item.id)?.count ?? 0;
         return (
           <FadeSlideIn delay={index * 50} trigger={item.id}>
-            <Card style={styles.card}>
-              <View style={styles.cardHeader}>
-                <View style={styles.cardCopy}>
-                  <Text style={text.heading}>{item.name}</Text>
-                  <Text style={text.small}>{item.rewardLabel}</Text>
-                </View>
-                <Text style={styles.count}>{count}/{item.stampsRequired}</Text>
-              </View>
-              <StampProgressInline
-                current={count}
-                required={item.stampsRequired}
-                style={styles.progress}
-              />
-            </Card>
+            <StampCard restaurant={item} current={count} style={styles.card} />
           </FadeSlideIn>
         );
       }}
       ListFooterComponent={
         <View>
           <SectionLabel>Vouchers</SectionLabel>
-          {vouchers.length === 0 ? (
+          {active.length === 0 ? (
             <Card style={styles.empty}>
               <View style={styles.emptyIcon}>
                 <FeatureIcon name="reward" size={28} />
               </View>
-              <Text style={text.heading}>No vouchers yet</Text>
+              <Text style={text.heading}>
+                {redeemed.length > 0 ? 'Nothing to redeem' : 'No vouchers yet'}
+              </Text>
               <Text style={[text.bodyMuted, styles.emptyCopy]}>
                 Complete phone-down sessions and your unlocked rewards will appear here.
               </Text>
             </Card>
           ) : (
-            vouchers.map((v, i) => (
-              <FadeSlideIn key={v.id} delay={i * 50} trigger={v.id}>
-                <PressableScale
-                  onPress={() =>
-                    navigation.navigate('RedeemVoucher', {
-                      voucherId: v.id,
-                      returnTo: route.params?.returnTo,
-                    })
-                  }
-                  accessibilityRole="button"
-                  accessibilityLabel={`${v.restaurantName} voucher, ${v.redeemedAt ? 'redeemed' : 'available'}`}
-                >
-                  <Card style={styles.card}>
-                    <View style={styles.cardHeader}>
-                      <View style={styles.cardCopy}>
-                        <Text style={text.heading}>{v.restaurantName}</Text>
-                        <Text style={text.small}>{v.rewardLabel}</Text>
-                      </View>
-                      <View style={[styles.status, v.redeemedAt && styles.statusMuted]}>
-                        <Text style={[styles.statusText, v.redeemedAt && styles.statusTextMuted]}>
-                          {v.redeemedAt ? 'Redeemed' : 'Available'}
-                        </Text>
-                      </View>
-                    </View>
-                    <Text style={[text.small, styles.voucherMeta]}>
-                      {v.redeemedAt
-                        ? `Used ${new Date(v.redeemedAt).toLocaleDateString()}`
-                        : `Expires ${new Date(v.expiresAt).toLocaleDateString()} · Tap to view`}
-                    </Text>
-                  </Card>
-                </PressableScale>
-              </FadeSlideIn>
-            ))
+            active.map(renderVoucher)
           )}
+
+          {redeemed.length > 0 ? (
+            <>
+              <PressableScale
+                onPress={() => setShowRedeemed((v) => !v)}
+                style={styles.disclosure}
+                accessibilityRole="button"
+                accessibilityState={{ expanded: showRedeemed }}
+                accessibilityLabel={`${showRedeemed ? 'Hide' : 'Show'} ${redeemed.length} redeemed ${
+                  redeemed.length === 1 ? 'voucher' : 'vouchers'
+                }`}
+              >
+                <Text style={styles.disclosureText}>
+                  {showRedeemed
+                    ? 'Hide redeemed'
+                    : `Show ${redeemed.length} redeemed`}
+                </Text>
+              </PressableScale>
+              {showRedeemed ? redeemed.map(renderVoucher) : null}
+            </>
+          ) : null}
         </View>
       }
     />
@@ -109,44 +114,18 @@ export default function RewardsScreen({ navigation, route }: Props) {
 
 const styles = StyleSheet.create({
   card: { marginBottom: spacing.md },
-  cardHeader: {
-    flexDirection: 'row',
-    alignItems: 'flex-start',
-    justifyContent: 'space-between',
-    gap: spacing.md,
+  /** Quiet by design — this reveals history, it isn't a primary action. */
+  disclosure: {
+    alignSelf: 'flex-start',
+    minHeight: layout.compactControlHeight,
+    justifyContent: 'center',
+    paddingVertical: spacing.sm,
+    marginBottom: spacing.sm,
   },
-  cardCopy: {
-    flex: 1,
-    gap: spacing.xs,
-  },
-  count: {
-    ...text.small,
-    color: colors.primary,
-    fontFamily: fonts.sansSemibold,
-  },
-  progress: {
-    marginTop: spacing.md,
-  },
-  status: {
-    backgroundColor: colors.successMuted,
-    borderRadius: radius.pill,
-    paddingHorizontal: spacing.sm,
-    paddingVertical: spacing.xs,
-  },
-  statusMuted: {
-    backgroundColor: colors.surfaceAlt,
-  },
-  statusText: {
-    ...text.caption,
-    color: colors.success,
-    letterSpacing: 0,
-    textTransform: 'none',
-  },
-  statusTextMuted: {
+  disclosureText: {
+    fontFamily: fonts.sansMedium,
+    fontSize: type.small,
     color: colors.textMuted,
-  },
-  voucherMeta: {
-    marginTop: spacing.md,
   },
   empty: {
     marginBottom: spacing.lg,

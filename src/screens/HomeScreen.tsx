@@ -18,6 +18,14 @@ import { Restaurant } from '../types';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'Home'>;
 
+/** Restaurants are a time-of-day business — greet accordingly rather than generically. */
+function greeting(): string {
+  const hour = new Date().getHours();
+  if (hour < 12) return 'Good morning';
+  if (hour < 17) return 'Good afternoon';
+  return 'Good evening';
+}
+
 function sortRestaurants(restaurants: Restaurant[], arrivedId: string | null): Restaurant[] {
   if (!arrivedId) return restaurants;
   const arrived = restaurants.find((r) => r.id === arrivedId);
@@ -71,31 +79,28 @@ export default function HomeScreen({ navigation }: Props) {
 
       {!activeSession && !arrivedRestaurantId ? (
         <FadeSlideIn trigger="arrival-status">
-          <View style={styles.statusPanel}>
-            <View style={styles.statusRow}>
-              <View style={styles.statusIcon}>
-                <FeatureIcon name="dining" size={28} />
-              </View>
-              <View style={styles.statusCopy}>
-                <Text style={text.heading}>
-                  {settings.monitoringEnabled ? 'Ready when you arrive' : 'Arrival detection is off'}
-                </Text>
-                <Text style={text.bodyMuted}>
-                  {settings.monitoringEnabled
-                    ? "We'll send a quiet invitation at a partner restaurant."
-                    : 'Turn on background monitoring to receive arrival invitations.'}
-                </Text>
-              </View>
+          {settings.monitoringEnabled ? (
+            // Idle state is ambient, not a card — nothing here needs acting on.
+            <View style={styles.statusLine}>
+              <View style={styles.statusDot} />
+              <Text style={[text.small, styles.statusText]}>
+                Watching for partner restaurants. We'll invite you in when you sit down.
+              </Text>
             </View>
-            {!settings.monitoringEnabled ? (
+          ) : (
+            <View style={styles.statusPanel}>
+              <Text style={text.heading}>Arrival detection is off</Text>
+              <Text style={text.bodyMuted}>
+                Turn on background monitoring to receive arrival invitations.
+              </Text>
               <Button
                 label="Open settings"
                 variant="secondary"
                 onPress={() => navigation.navigate('Settings')}
                 style={styles.emptyBtn}
               />
-            ) : null}
-          </View>
+            </View>
+          )}
         </FadeSlideIn>
       ) : null}
       <SectionLabel>Partner restaurants</SectionLabel>
@@ -106,7 +111,7 @@ export default function HomeScreen({ navigation }: Props) {
     <ScreenList
       header={
         <ScreenHeader
-          kicker={`Hola, ${account?.firstName ?? 'friend'}`}
+          kicker={`${greeting()}, ${account?.firstName ?? 'friend'}`}
           title="Partners nearby"
           onSettingsPress={() => navigation.navigate('Settings')}
         />
@@ -120,7 +125,6 @@ export default function HomeScreen({ navigation }: Props) {
             restaurant={item}
             stampCount={stampCountFor(item.id)}
             variant={item.id === arrivedRestaurantId && !activeSession ? 'arrived' : 'default'}
-            showTopDivider={index === 0}
             onPress={() => {
               if (item.id === arrivedRestaurantId && !activeSession) {
                 navigation.navigate('ZonePrompt');
@@ -157,24 +161,26 @@ const styles = StyleSheet.create({
     borderColor: colors.border,
     padding: spacing.xl,
     marginBottom: spacing.md,
-    gap: spacing.md,
+    gap: spacing.sm,
   },
-  statusRow: {
+  statusLine: {
     flexDirection: 'row',
-    alignItems: 'center',
-    gap: spacing.md,
+    alignItems: 'flex-start',
+    gap: spacing.sm,
+    paddingVertical: spacing.sm,
+    marginBottom: spacing.lg,
   },
-  statusIcon: {
-    width: 48,
-    height: 48,
-    borderRadius: radius.pill,
-    backgroundColor: colors.primaryMuted,
-    alignItems: 'center',
-    justifyContent: 'center',
+  statusDot: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+    backgroundColor: colors.success,
+    // Optically centre on the first line rather than the whole wrapped block.
+    marginTop: 7,
   },
-  statusCopy: {
+  statusText: {
     flex: 1,
-    gap: spacing.xs,
+    color: colors.textSubtle,
   },
   emptyBtn: {
     marginTop: spacing.sm,

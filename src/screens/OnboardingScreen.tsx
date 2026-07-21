@@ -260,21 +260,25 @@ export default function OnboardingScreen() {
         contentContainerStyle={styles.stageContent}
         showsVerticalScrollIndicator={false}
       >
-        <Animated.View
-          style={[
-            styles.contentSlot,
-            {
-              opacity: contentFade,
-              transform: [{ translateX: contentX }],
-            },
-          ]}
-        >
-          <OnboardingSlide
-            isWide={isWide}
-            copyLift={copyLift}
-            {...current}
-          />
-        </Animated.View>
+        {/* The blocked panel takes over the message; showing chapter copy too would
+            collide with the fixed scene once the taller footer re-centres the stage. */}
+        {!permissionBlocked ? (
+          <Animated.View
+            style={[
+              styles.contentSlot,
+              {
+                opacity: contentFade,
+                transform: [{ translateX: contentX }],
+              },
+            ]}
+          >
+            <OnboardingSlide
+              isWide={isWide}
+              copyLift={copyLift}
+              {...current}
+            />
+          </Animated.View>
+        ) : null}
       </ScrollView>
 
       <View style={[styles.footer, { paddingBottom: insets.bottom + spacing.md }]}>
