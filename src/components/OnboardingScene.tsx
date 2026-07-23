@@ -1,5 +1,5 @@
-import React from 'react';
-import { Animated, StyleSheet, useWindowDimensions, View } from 'react-native';
+import React, { useEffect, useRef, useState } from 'react';
+import { Animated, Easing, LayoutChangeEvent, StyleSheet, View } from 'react-native';
 import Svg, {
   Circle,
   Defs,
@@ -9,13 +9,14 @@ import Svg, {
   LinearGradient,
   Path,
   RadialGradient,
+  Rect,
   Stop,
 } from 'react-native-svg';
+import { useReducedMotion } from '../hooks/useReducedMotion';
 import { colors, motion } from '../theme';
 
 type Props = {
   progress: Animated.Value;
-  isWide: boolean;
 };
 
 type SceneGeometry = {
@@ -27,36 +28,43 @@ type SceneGeometry = {
   tableRY: number;
   placeOffset: number;
   plateRadius: number;
-  /** Place settings sit on the table's near edge, clear of the centred copy. */
+  /** Settings sit above centre so each chapter's motif has clear table below it. */
   plateRowY: number;
+  /** Where the per-chapter object rests on the cloth. */
+  motifY: number;
 };
 
-function PlaceSetting({
-  x,
-  y,
-  radius,
-}: {
-  x: number;
-  y: number;
-  radius: number;
-}) {
+/**
+ * The scene is drawn to fit the band it is given rather than the window, so the
+ * table reads as a whole object instead of arcs running off every edge.
+ */
+function measure(width: number, height: number): SceneGeometry {
+  const centerX = width / 2;
+  const centerY = height / 2;
+  const tableRX = width * 0.44;
+  const tableRY = Math.min(height * 0.32, tableRX * 0.52);
+  const plateRadius = Math.min(width * 0.082, height * 0.15, 40);
+
+  return {
+    width,
+    height,
+    centerX,
+    centerY,
+    tableRX,
+    tableRY,
+    // Kept well inside the table so a plate's outer utensil never clips the edge.
+    placeOffset: Math.min(width * 0.26, tableRX * 0.6),
+    plateRadius,
+    plateRowY: centerY - tableRY * 0.34,
+    motifY: centerY + tableRY * 0.4,
+  };
+}
+
+function PlaceSetting({ x, y, radius }: { x: number; y: number; radius: number }) {
   return (
     <G>
-      <Circle
-        cx={x}
-        cy={y}
-        r={radius}
-        fill="none"
-        stroke={colors.primarySoft}
-        strokeWidth="1.2"
-      />
-      <Circle
-        cx={x}
-        cy={y}
-        r={radius * 0.66}
-        fill="none"
-        stroke={colors.border}
-      />
+      <Circle cx={x} cy={y} r={radius} fill="none" stroke={colors.primarySoft} strokeWidth="1.2" />
+      <Circle cx={x} cy={y} r={radius * 0.66} fill="none" stroke={colors.border} />
       <Line
         x1={x - radius * 1.38}
         y1={y - radius * 0.62}
@@ -77,16 +85,7 @@ function PlaceSetting({
   );
 }
 
-function SceneBase({
-  width,
-  height,
-  centerX,
-  centerY,
-  tableRX,
-  tableRY,
-}: SceneGeometry) {
-  const horizonY = centerY - tableRY * 0.98;
-
+function SceneBase({ centerX, centerY, tableRX, tableRY }: SceneGeometry) {
   return (
     <>
       <Defs>
@@ -104,8 +103,8 @@ function SceneBase({
       <Ellipse
         cx={centerX}
         cy={centerY}
-        rx={tableRX * 1.16}
-        ry={tableRY * 1.28}
+        rx={tableRX * 1.24}
+        ry={tableRY * 1.5}
         fill="url(#tableGlow)"
       />
       <Ellipse
@@ -121,77 +120,70 @@ function SceneBase({
       <Ellipse
         cx={centerX}
         cy={centerY}
-        rx={tableRX * 0.78}
-        ry={tableRY * 0.7}
+        rx={tableRX * 0.8}
+        ry={tableRY * 0.74}
         fill="none"
         stroke={colors.borderLight}
       />
       <Path
-        d={`M ${centerX - tableRX * 0.72} ${horizonY}
-          C ${centerX - tableRX * 0.34} ${horizonY - tableRY * 0.24},
-            ${centerX + tableRX * 0.34} ${horizonY - tableRY * 0.24},
-            ${centerX + tableRX * 0.72} ${horizonY}`}
+        d={`M ${centerX - tableRX * 0.7} ${centerY - tableRY * 1.02}
+          C ${centerX - tableRX * 0.32} ${centerY - tableRY * 1.24},
+            ${centerX + tableRX * 0.32} ${centerY - tableRY * 1.24},
+            ${centerX + tableRX * 0.7} ${centerY - tableRY * 1.02}`}
         fill="none"
         stroke="url(#horizonGlow)"
         strokeLinecap="round"
       />
-      <Path
-        d={`M ${-width * 0.08} ${height * 0.84}
-          C ${width * 0.28} ${height * 0.75},
-            ${width * 0.72} ${height * 0.75},
-            ${width * 1.08} ${height * 0.84}`}
-        fill="none"
-        stroke={colors.primarySoft}
-        strokeOpacity="0.38"
-        strokeLinecap="round"
+    </>
+  );
+}
+
+/** Chapter one: a laid table, nobody's phone in sight. */
+function WelcomeDetails({ centerX, placeOffset, plateRadius, plateRowY, motifY }: SceneGeometry) {
+  return (
+    <>
+      <PlaceSetting x={centerX - placeOffset} y={plateRowY} radius={plateRadius} />
+      <PlaceSetting x={centerX + placeOffset} y={plateRowY} radius={plateRadius} />
+      {/* A votive between the settings — the warm centre everyone leans toward. */}
+      <Circle
+        cx={centerX}
+        cy={motifY - plateRadius * 0.3}
+        r={plateRadius * 0.62}
+        fill={colors.primary}
+        fillOpacity="0.12"
+      />
+      <Rect
+        x={centerX - plateRadius * 0.26}
+        y={motifY - plateRadius * 0.08}
+        width={plateRadius * 0.52}
+        height={plateRadius * 0.6}
+        rx={plateRadius * 0.12}
+        fill={colors.surface}
+        fillOpacity="0.55"
+        stroke={colors.primaryDark}
+      />
+      <Ellipse
+        cx={centerX}
+        cy={motifY - plateRadius * 0.28}
+        rx={plateRadius * 0.11}
+        ry={plateRadius * 0.19}
+        fill={colors.primary}
       />
     </>
   );
 }
 
-function WelcomeDetails({
-  centerX,
-  placeOffset,
-  plateRadius,
-  plateRowY,
-}: SceneGeometry) {
+/** Chapter two: the phone is face-down on the cloth. */
+function PresenceDetails({ centerX, placeOffset, plateRadius, plateRowY, motifY }: SceneGeometry) {
   return (
     <>
       <PlaceSetting x={centerX - placeOffset} y={plateRowY} radius={plateRadius} />
       <PlaceSetting x={centerX + placeOffset} y={plateRowY} radius={plateRadius} />
       <Path
-        d={`M ${centerX - plateRadius * 1.5} ${plateRowY}
-          C ${centerX - plateRadius * 0.72} ${plateRowY - plateRadius * 0.5},
-            ${centerX + plateRadius * 0.72} ${plateRowY - plateRadius * 0.5},
-            ${centerX + plateRadius * 1.5} ${plateRowY}`}
-        fill="none"
-        stroke={colors.primarySoft}
-        strokeLinecap="round"
-      />
-      <Circle cx={centerX} cy={plateRowY} r={plateRadius * 0.12} fill={colors.primary} />
-    </>
-  );
-}
-
-function PresenceDetails({
-  centerX,
-  centerY,
-  placeOffset,
-  plateRadius,
-  plateRowY,
-  tableRY,
-}: SceneGeometry) {
-  const phoneY = centerY + tableRY * 0.5;
-
-  return (
-    <>
-      <PlaceSetting x={centerX - placeOffset} y={plateRowY} radius={plateRadius} />
-      <PlaceSetting x={centerX + placeOffset} y={plateRowY} radius={plateRadius} />
-      <Path
-        d={`M ${centerX - plateRadius * 0.65} ${phoneY - plateRadius * 0.28}
-          L ${centerX + plateRadius * 0.52} ${phoneY - plateRadius * 0.42}
-          L ${centerX + plateRadius * 0.68} ${phoneY + plateRadius * 0.18}
-          L ${centerX - plateRadius * 0.5} ${phoneY + plateRadius * 0.32} Z`}
+        d={`M ${centerX - plateRadius * 0.62} ${motifY - plateRadius * 0.3}
+          L ${centerX + plateRadius * 0.5} ${motifY - plateRadius * 0.44}
+          L ${centerX + plateRadius * 0.66} ${motifY + plateRadius * 0.16}
+          L ${centerX - plateRadius * 0.48} ${motifY + plateRadius * 0.3} Z`}
         fill={colors.bgMid}
         fillOpacity="0.7"
         stroke={colors.primaryDark}
@@ -199,18 +191,9 @@ function PresenceDetails({
       />
       <Line
         x1={centerX - plateRadius * 0.12}
-        y1={phoneY + plateRadius * 0.17}
+        y1={motifY + plateRadius * 0.15}
         x2={centerX + plateRadius * 0.14}
-        y2={phoneY + plateRadius * 0.14}
-        stroke={colors.primarySoft}
-        strokeLinecap="round"
-      />
-      <Path
-        d={`M ${centerX - plateRadius * 1.3} ${phoneY + plateRadius * 0.75}
-          C ${centerX - plateRadius * 0.54} ${phoneY + plateRadius * 1.02},
-            ${centerX + plateRadius * 0.54} ${phoneY + plateRadius * 1.02},
-            ${centerX + plateRadius * 1.3} ${phoneY + plateRadius * 0.75}`}
-        fill="none"
+        y2={motifY + plateRadius * 0.12}
         stroke={colors.primarySoft}
         strokeLinecap="round"
       />
@@ -218,31 +201,15 @@ function PresenceDetails({
   );
 }
 
-function RewardDetails({
-  centerX,
-  centerY,
-  placeOffset,
-  plateRadius,
-  plateRowY,
-  tableRY,
-}: SceneGeometry) {
-  const stampY = centerY + tableRY * 0.08;
-  const stampGap = plateRadius * 0.92;
-  const stampR = plateRadius * 0.28;
+/** Chapter three: stamps filling up toward a reward. */
+function RewardDetails({ centerX, placeOffset, plateRadius, plateRowY, motifY }: SceneGeometry) {
+  const stampGap = plateRadius * 0.94;
+  const stampR = plateRadius * 0.29;
 
   return (
     <>
       <PlaceSetting x={centerX - placeOffset} y={plateRowY} radius={plateRadius} />
       <PlaceSetting x={centerX + placeOffset} y={plateRowY} radius={plateRadius} />
-      <Path
-        d={`M ${centerX - stampGap * 1.35} ${stampY + stampR * 1.8}
-          C ${centerX - stampGap * 0.4} ${stampY + stampR * 2.35},
-            ${centerX + stampGap * 0.4} ${stampY + stampR * 2.35},
-            ${centerX + stampGap * 1.35} ${stampY + stampR * 1.8}`}
-        fill="none"
-        stroke={colors.primarySoft}
-        strokeLinecap="round"
-      />
       {[-1, 0, 1].map((slot) => {
         const filled = slot < 1;
         const x = centerX + slot * stampGap;
@@ -250,20 +217,13 @@ function RewardDetails({
           <G key={`stamp-${slot}`}>
             <Circle
               cx={x}
-              cy={stampY}
+              cy={motifY}
               r={stampR}
               fill={filled ? colors.primaryMuted : 'none'}
               stroke={filled ? colors.primary : colors.border}
               strokeWidth="1.5"
             />
-            {filled ? (
-              <Circle
-                cx={x}
-                cy={stampY}
-                r={stampR * 0.34}
-                fill={colors.primary}
-              />
-            ) : null}
+            {filled ? <Circle cx={x} cy={motifY} r={stampR * 0.34} fill={colors.primary} /> : null}
           </G>
         );
       })}
@@ -283,15 +243,7 @@ function SceneLayer({
   children: React.ReactNode;
 }) {
   return (
-    <Animated.View
-      style={[
-        StyleSheet.absoluteFill,
-        {
-          opacity,
-          transform: [{ translateX }],
-        },
-      ]}
-    >
+    <Animated.View style={[StyleSheet.absoluteFill, { opacity, transform: [{ translateX }] }]}>
       <Svg
         width="100%"
         height="100%"
@@ -304,30 +256,46 @@ function SceneLayer({
   );
 }
 
-export default function OnboardingScene({ progress, isWide }: Props) {
-  const { width, height } = useWindowDimensions();
-  const centerX = isWide ? width * 0.69 : width * 0.5;
-  const centerY = isWide ? height * 0.52 : height * 0.48;
-  const geometry: SceneGeometry = {
-    width,
-    height,
-    centerX,
-    centerY,
-    tableRX: isWide ? Math.min(width * 0.38, 430) : Math.max(width * 0.76, 286),
-    tableRY: isWide ? Math.min(height * 0.34, 270) : Math.min(height * 0.27, 226),
-    // Narrow screens must keep both settings fully on-screen. Pushing them out
-    // clips each plate and leaves only its outer utensil showing, which reads as
-    // a stray rule beside the copy rather than a table.
-    placeOffset: isWide ? Math.min(width * 0.2, 215) : Math.min(width * 0.3, 132),
-    plateRadius: isWide ? Math.min(width * 0.055, 54) : Math.max(width * 0.105, 42),
-    plateRowY: 0,
+export default function OnboardingScene({ progress }: Props) {
+  const reduceMotion = useReducedMotion();
+  const [box, setBox] = useState({ width: 0, height: 0 });
+  const drift = useRef(new Animated.Value(0)).current;
+
+  const onLayout = (event: LayoutChangeEvent) => {
+    const { width, height } = event.nativeEvent.layout;
+    setBox((prev) => (prev.width === width && prev.height === height ? prev : { width, height }));
   };
-  // Wide layouts put the copy beside the scene, so settings can stay near the middle.
-  // Narrow layouts stack copy over the table, so they drop to the near edge.
-  geometry.plateRowY = isWide
-    ? centerY + geometry.tableRY * 0.08
-    : centerY + geometry.tableRY * 0.52;
-  // Soft overlapping crossfades so the table scene evolves as one continuous chapter.
+
+  // A single slow breath. Long enough that it reads as the scene being alive
+  // rather than as something moving — the screen should stay calm.
+  useEffect(() => {
+    if (reduceMotion) {
+      drift.setValue(0);
+      return undefined;
+    }
+    const loop = Animated.loop(
+      Animated.sequence([
+        Animated.timing(drift, {
+          toValue: 1,
+          duration: motion.ambientDrift,
+          easing: Easing.inOut(Easing.sin),
+          useNativeDriver: true,
+        }),
+        Animated.timing(drift, {
+          toValue: 0,
+          duration: motion.ambientDrift,
+          easing: Easing.inOut(Easing.sin),
+          useNativeDriver: true,
+        }),
+      ]),
+    );
+    loop.start();
+    return () => loop.stop();
+  }, [drift, reduceMotion]);
+
+  const geometry = measure(box.width, box.height);
+
+  // Soft overlapping crossfades so the table evolves as one continuous chapter.
   const welcomeOpacity = progress.interpolate({
     inputRange: [0, 0.55, 1],
     outputRange: [1, 0.42, 0],
@@ -338,7 +306,7 @@ export default function OnboardingScene({ progress, isWide }: Props) {
     outputRange: [0, 0.55, 1, 0.55, 0],
     extrapolate: 'clamp',
   });
-  const arrivalOpacity = progress.interpolate({
+  const rewardOpacity = progress.interpolate({
     inputRange: [1, 1.45, 2],
     outputRange: [0, 0.55, 1],
     extrapolate: 'clamp',
@@ -353,36 +321,50 @@ export default function OnboardingScene({ progress, isWide }: Props) {
     outputRange: [motion.chapterParallax, 0, -motion.chapterParallax],
     extrapolate: 'clamp',
   });
-  const arrivalX = progress.interpolate({
+  const rewardX = progress.interpolate({
     inputRange: [1, 2],
     outputRange: [motion.chapterParallax, 0],
     extrapolate: 'clamp',
   });
+  const driftY = drift.interpolate({
+    inputRange: [0, 1],
+    outputRange: [0, -motion.ambientDistance],
+  });
 
   return (
     <View
+      onLayout={onLayout}
       pointerEvents="none"
       accessible={false}
       importantForAccessibility="no-hide-descendants"
-      style={StyleSheet.absoluteFill}
+      style={styles.root}
     >
-      <Svg
-        width="100%"
-        height="100%"
-        viewBox={`0 0 ${width} ${height}`}
-        accessible={false}
-      >
-        <SceneBase {...geometry} />
-      </Svg>
-      <SceneLayer opacity={welcomeOpacity} translateX={welcomeX} geometry={geometry}>
-        <WelcomeDetails {...geometry} />
-      </SceneLayer>
-      <SceneLayer opacity={presenceOpacity} translateX={presenceX} geometry={geometry}>
-        <PresenceDetails {...geometry} />
-      </SceneLayer>
-      <SceneLayer opacity={arrivalOpacity} translateX={arrivalX} geometry={geometry}>
-        <RewardDetails {...geometry} />
-      </SceneLayer>
+      {box.width > 0 && box.height > 0 ? (
+        <Animated.View style={[styles.stack, { transform: [{ translateY: driftY }] }]}>
+          <Svg
+            width="100%"
+            height="100%"
+            viewBox={`0 0 ${geometry.width} ${geometry.height}`}
+            accessible={false}
+          >
+            <SceneBase {...geometry} />
+          </Svg>
+          <SceneLayer opacity={welcomeOpacity} translateX={welcomeX} geometry={geometry}>
+            <WelcomeDetails {...geometry} />
+          </SceneLayer>
+          <SceneLayer opacity={presenceOpacity} translateX={presenceX} geometry={geometry}>
+            <PresenceDetails {...geometry} />
+          </SceneLayer>
+          <SceneLayer opacity={rewardOpacity} translateX={rewardX} geometry={geometry}>
+            <RewardDetails {...geometry} />
+          </SceneLayer>
+        </Animated.View>
+      ) : null}
     </View>
   );
 }
+
+const styles = StyleSheet.create({
+  root: { flex: 1 },
+  stack: { flex: 1 },
+});

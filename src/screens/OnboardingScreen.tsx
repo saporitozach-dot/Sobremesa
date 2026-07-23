@@ -252,7 +252,6 @@ export default function OnboardingScreen() {
         locations={[0, 0.35, 0.7, 1]}
         style={StyleSheet.absoluteFill}
       />
-      <OnboardingScene progress={sceneProgress} isWide={isWide} />
 
       <View style={[styles.progress, { paddingTop: insets.top + spacing.md }]}>
         <View style={styles.brandRow}>
@@ -279,23 +278,30 @@ export default function OnboardingScreen() {
         showsVerticalScrollIndicator={false}
       >
         {/* The blocked panel takes over the message; showing chapter copy too would
-            collide with the fixed scene once the taller footer re-centres the stage. */}
+            collide with the scene once the taller footer re-centres the stage. */}
         {!permissionBlocked ? (
-          <Animated.View
-            style={[
-              styles.contentSlot,
-              {
-                opacity: contentFade,
-                transform: [{ translateX: contentX }],
-              },
-            ]}
-          >
-            <OnboardingSlide
-              isWide={isWide}
-              copyLift={copyLift}
-              {...current}
-            />
-          </Animated.View>
+          <View style={[styles.stageInner, isWide && styles.stageInnerWide]}>
+            {/* The scene owns this band outright — nothing is set over the art. */}
+            <View style={[styles.sceneBand, isWide ? styles.sceneBandWide : styles.sceneBandNarrow]}>
+              <OnboardingScene progress={sceneProgress} />
+            </View>
+            <Animated.View
+              style={[
+                styles.contentSlot,
+                isWide && styles.contentSlotWide,
+                {
+                  opacity: contentFade,
+                  transform: [{ translateX: contentX }],
+                },
+              ]}
+            >
+              <OnboardingSlide
+                isWide={isWide}
+                copyLift={copyLift}
+                {...current}
+              />
+            </Animated.View>
+          </View>
         ) : null}
       </ScrollView>
 
@@ -383,11 +389,42 @@ const styles = StyleSheet.create({
     paddingHorizontal: layout.screenPadding,
     paddingVertical: spacing.lg,
   },
-  contentSlot: {
+  stageInner: {
+    flex: 1,
     width: '100%',
     maxWidth: layout.onboardingMaxWidth,
     alignSelf: 'center',
+    justifyContent: 'center',
+  },
+  stageInnerWide: {
+    // Scene is declared first but belongs on the right beside the copy.
+    flexDirection: 'row-reverse',
     alignItems: 'center',
+    gap: spacing.xl,
+  },
+  sceneBand: {
+    width: '100%',
+  },
+  // Sized to the composition rather than to whatever space is left over, so the
+  // table fills its band instead of floating in the middle of an empty one.
+  sceneBandNarrow: {
+    aspectRatio: layout.onboardingSceneAspect,
+    maxHeight: layout.onboardingSceneMaxHeight,
+    alignSelf: 'center',
+  },
+  sceneBandWide: {
+    flex: 1,
+    alignSelf: 'stretch',
+  },
+  contentSlot: {
+    width: '100%',
+    alignSelf: 'center',
+    alignItems: 'center',
+    paddingTop: spacing.xl,
+  },
+  contentSlotWide: {
+    flex: 1,
+    paddingTop: 0,
   },
   slide: {
     width: '100%',
@@ -395,7 +432,6 @@ const styles = StyleSheet.create({
   },
   slideWide: {
     alignItems: 'flex-start',
-    paddingRight: '54%',
   },
   kicker: {
     ...text.kicker,

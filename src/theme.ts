@@ -101,8 +101,22 @@ export const layout = {
   readableCopyWidth: 320,
   onboardingMaxWidth: 1040,
   onboardingWideBreakpoint: 700,
+  /** The art band is sized to the composition so the table isn't lost in dead space. */
+  onboardingSceneAspect: 1.5,
+  onboardingSceneMaxHeight: 300,
   sessionRingSize: 220,
   stampRingSize: 120,
+  /** Inline form rows (Settings): label gutter so the inputs share one left edge. */
+  inlineLabelWidth: 76,
+  /**
+   * Custom switch: a knob riding a thin rail, not a thumb inside a pill. The
+   * knob overhanging the rail is what keeps it from reading as a stock control.
+   */
+  toggleWidth: 44,
+  toggleRailHeight: 10,
+  toggleKnob: 24,
+  /** Live-status indicator dot. */
+  statusDotSize: 6,
 };
 
 export const motion = {
@@ -119,6 +133,9 @@ export const motion = {
   chapterEnterOpacity: 0.55,
   /** Scene detail drift tied to chapter progress (parallax, not a hard slide). */
   chapterParallax: 10,
+  /** Ambient scene drift — slow enough to read as stillness rather than motion. */
+  ambientDrift: 9000,
+  ambientDistance: 6,
   pressScale: 0.985,
   emphasisScale: 0.96,
   pressOpacity: 0.82,
@@ -155,6 +172,14 @@ export const shadows = {
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.15,
     shadowRadius: 6,
+    elevation: 2,
+  },
+  /** Tight contact shadow for a small control sitting on a surface. */
+  knob: {
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.24,
+    shadowRadius: 2,
     elevation: 2,
   },
 };

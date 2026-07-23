@@ -10,10 +10,9 @@ import FadeSlideIn from '../components/FadeSlideIn';
 import RestaurantCard from '../components/RestaurantCard';
 import ScreenHeader from '../components/ScreenHeader';
 import ScreenList from '../components/ScreenList';
-import SectionLabel from '../components/SectionLabel';
 import { FeatureIcon } from '../components/icons/FeatureIcon';
 import { text } from '../theme/typography';
-import { colors, radius, spacing } from '../theme';
+import { colors, layout, radius, spacing } from '../theme';
 import { Restaurant } from '../types';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'Home'>;
@@ -81,11 +80,10 @@ export default function HomeScreen({ navigation }: Props) {
         <FadeSlideIn trigger="arrival-status">
           {settings.monitoringEnabled ? (
             // Idle state is ambient, not a card — nothing here needs acting on.
-            <View style={styles.statusLine}>
+            // A chip keeps it to one line and reads as status rather than body copy.
+            <View style={styles.statusPill}>
               <View style={styles.statusDot} />
-              <Text style={[text.small, styles.statusText]}>
-                Watching for partner restaurants. We'll invite you in when you sit down.
-              </Text>
+              <Text style={styles.statusText}>Watching for partner restaurants</Text>
             </View>
           ) : (
             <View style={styles.statusPanel}>
@@ -103,7 +101,6 @@ export default function HomeScreen({ navigation }: Props) {
           )}
         </FadeSlideIn>
       ) : null}
-      <SectionLabel>Partner restaurants</SectionLabel>
     </View>
   );
 
@@ -163,24 +160,28 @@ const styles = StyleSheet.create({
     marginBottom: spacing.md,
     gap: spacing.sm,
   },
-  statusLine: {
+  statusPill: {
     flexDirection: 'row',
-    alignItems: 'flex-start',
+    alignItems: 'center',
+    alignSelf: 'flex-start',
     gap: spacing.sm,
     paddingVertical: spacing.sm,
+    paddingHorizontal: spacing.md,
+    borderRadius: radius.pill,
+    backgroundColor: colors.surface,
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: colors.borderLight,
     marginBottom: spacing.lg,
   },
   statusDot: {
-    width: 6,
-    height: 6,
-    borderRadius: 3,
+    width: layout.statusDotSize,
+    height: layout.statusDotSize,
+    borderRadius: radius.pill,
     backgroundColor: colors.success,
-    // Optically centre on the first line rather than the whole wrapped block.
-    marginTop: 7,
   },
   statusText: {
-    flex: 1,
-    color: colors.textSubtle,
+    ...text.small,
+    color: colors.textMuted,
   },
   emptyBtn: {
     marginTop: spacing.sm,
