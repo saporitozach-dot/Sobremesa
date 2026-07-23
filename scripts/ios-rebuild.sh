@@ -32,6 +32,9 @@ node "$CLI_PATH" export:embed \
 echo "→ Patching Xcode explicit-module settings..."
 ruby "$ROOT/scripts/patch-ios-explicit-modules.rb"
 
+echo "→ Wiring bundled assets into Copy Bundle Resources..."
+ruby "$ROOT/scripts/add-assets-resource.rb"
+
 echo "→ Clearing stale DerivedData..."
 find "$HOME/Library/Developer/Xcode/DerivedData" -maxdepth 1 -type d -name 'Sobremesa-*' -exec rm -rf {} + 2>/dev/null || true
 
@@ -46,11 +49,23 @@ xcodebuild \
   -destination 'platform=iOS Simulator,name=iPhone 17 Pro' \
   build
 
-APP="$HOME/Library/Developer/Xcode/DerivedData/Sobremesa-bepailrylgtotxepaatiirekhpdm/Build/Products/Debug-iphonesimulator/Sobremesa.app"
+# Ask Xcode where it actually put the product. The DerivedData hash changes
+# whenever the project moves, and a stale hardcoded path made this step silently
+# no-op — the build succeeded and the simulator kept running the old install.
+BUILT_PRODUCTS_DIR="$(xcodebuild \
+  -workspace Sobremesa.xcworkspace \
+  -scheme Sobremesa \
+  -configuration Debug \
+  -sdk iphonesimulator \
+  -showBuildSettings 2>/dev/null | awk -F' = ' '/ BUILT_PRODUCTS_DIR /{print $2; exit}')"
+APP="$BUILT_PRODUCTS_DIR/Sobremesa.app"
 if [[ -d "$APP" ]]; then
   echo "→ Installing on booted simulator..."
-  xcrun simctl install booted "$APP" || true
-  xcrun simctl launch booted com.saporitozach.sobremesa || true
+  xcrun simctl install booted "$APP"
+  xcrun simctl terminate booted com.saporitozach.sobremesa 2>/dev/null || true
+  xcrun simctl launch booted com.saporitozach.sobremesa
+else
+  echo "! Built product not found at $APP — skipping install." >&2
 fi
 
 echo "✓ Rebuild complete"
